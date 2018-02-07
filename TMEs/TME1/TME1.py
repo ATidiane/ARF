@@ -1,6 +1,7 @@
+# -*- coding: utf-8 -*-
 
 import numpy as np
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import collections
 import pickle as pkl
 from math import *
@@ -28,8 +29,8 @@ def attributes():
     return (entropie, entropie_cond, dif)
     
 def affichage():
-    """ Affiche l'attribut, l'entropie, l'entropie conditionnel ainsi que 
-    la différence entre ces deux dernieres. """
+    """Affiche l'attribut, l'entropie, l'entropie conditionnel ainsi que 
+    la différence entre ces deux dernieres."""
     ent, entc, dif = attributes()
     i = 0
     for e, ec, d in zip(ent, entc, dif):
