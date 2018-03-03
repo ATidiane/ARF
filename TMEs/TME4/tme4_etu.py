@@ -57,6 +57,7 @@ class Lineaire(object):
             :testx: donnees de test
             :testy: label de test
         """
+        
         datay = datay.reshape(-1,1)
         N = len(datay)
         datax = datax.reshape(N,-1)
@@ -87,6 +88,8 @@ def load_usps(fn):
         f.readline()
         data = [[float(x) for x in l.split()] for l in f if len(l.split())>2]
     tmp=np.array(data)
+    # Retourne la seconde colonne jusqu'à la dernière tmp[:,1:], ainsi que 
+    # la première colonne tmp[:,0]
     return tmp[:,1:],tmp[:,0].astype(int)
 
 def show_usps(data):
@@ -95,7 +98,7 @@ def show_usps(data):
 
 
 def plot_error(datax,datay,f,step=10):
-    grid,x1list,x2list=make_grid(xmin=-4,xmax=4,ymin=-4,ymax=4)
+    grid,x1list,x2list=make_grid(data=datax, xmin=-4,xmax=4,ymin=-4,ymax=4)
     print(x1list.shape, x2list.shape)
     print(np.array([f(datax,datay,w) for w in grid]).shape)
     plt.contourf(x1list,x2list,np.array([f(datax,datay,w) for w in grid]).reshape(x1list.shape),25)
@@ -103,6 +106,20 @@ def plot_error(datax,datay,f,step=10):
     plt.show()
 
 
+def extract_usps(f, firstclass, secondclass):
+    pixels, numbers = load_usps(f)
+    indexes69 = np.hstack(np.where(numbers == i)[0] for i in (firstclass, secondclass))
+    pixels69 = pixels[indexes69]
+    numbers69 = numbers[indexes69]
+    pixels69y = np.ones(pixels69.shape[0])
+    
+    for i in range(numbers69.shape[0]):
+        if numbers69[i] == firstclass: 
+            pixels69y[i] = -1
+        else:
+            pixels69y[i] = 1
+            
+    return pixels69, pixels69y
 
 if __name__=="__main__":
     """ Tracer des isocourbes de l'erreur """
@@ -113,10 +130,10 @@ if __name__=="__main__":
     trainx,trainy =  gen_arti(nbex=1000,data_type=0,epsilon=1)
     testx,testy =  gen_arti(nbex=1000,data_type=0,epsilon=1)
     grid,x1list,x2list=make_grid(xmin=-4,xmax=4,ymin=-4,ymax=4)
-    mse_test = mse(trainx, trainy, np.array([2,1]))
+    mse_test = mse(trainx, trainy, np.array([2,1])) 
     mseg_test = mse_g(trainx, trainy, np.array([2,1]))
     hinge_test = hinge(trainx, trainy, np.array([2,1]))
-    #print(mse_test, mseg_test, hinge_test)
+    print(mse_test, mseg_test, hinge_test)
     
     plt.figure()
     plot_error(trainx,trainy,mse)
@@ -129,4 +146,22 @@ if __name__=="__main__":
     plot_frontiere(trainx,perceptron.predict,200)
     plot_data(trainx,trainy)
 
- 
+
+    # USPS
+
+    datax, datay = extract_usps("USPS_train.txt", 1, 8) 
+    dataTx, dataTy = extract_usps("USPS_test.txt", 1, 8)
+     
+    show_usps(datax[1])
+    
+    #plt.figure()
+    #plot_error(datax,datay,mse)
+    plt.figure()
+    plot_error(datax,datay,hinge)
+    
+    perceptron_usps = Lineaire(hinge,hinge_g,max_iter=1000,eps=0.1)
+    perceptron_usps.fit(datax,datay)
+    print("Erreur : train %f, test %f"% (perceptron_usps.score(datax, datay),perceptron_usps.score(dataTx,dataTy)))
+    plt.figure()
+    plot_frontiere(trainx,perceptron_usps.predict,200)
+    plot_data(datax,datay)
