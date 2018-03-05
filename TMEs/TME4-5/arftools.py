@@ -4,14 +4,16 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 
 
-def plot_data(data,labels=None):
+def plot_data(data,labels=None, title=None):
     """
     Affiche des donnees 2D
     :param data: matrice des donnees 2d
     :param labels: vecteur des labels (discrets)
     :return:
     """
-    cols,marks = ["red", "green", "blue", "orange", "black", "cyan"],[".","+","*","o","x","^"]
+    if title is not None: plt.title(title)
+
+    cols,marks = ["red", "green", "blue", "orange", "black", "cyan"],[".","+","*","o","x","^"]    
     if labels is None:
         plt.scatter(data[:,0],data[:,1],marker="x")
         return
@@ -40,7 +42,7 @@ def make_grid(data=None,xmin=-5,xmax=5,ymin=-5,ymax=5,step=20):
     """
     if data is not None:
         xmax, xmin, ymax, ymin = np.max(data[:,0]),  np.min(data[:,0]), np.max(data[:,1]), np.min(data[:,1])
-    x, y =np.meshgrid(np.arange(xmin,xmax,(xmax-xmin)*1./step), np.arange(ymin,ymax,(ymax-ymin)*1./step))
+    x, y =np.meshgrid(np.arange(xmin,xmax,(xmax-xmin)*1./step), np.arange(ymin,ymax,(ymax-ymin)*1./step))    
     grid=np.c_[x.ravel(),y.ravel()]
     return grid, x, y
 
@@ -65,7 +67,7 @@ def gen_arti(centerx=1,centery=1,sigma=0.1,nbex=1000,data_type=0,epsilon=0.02):
         xpos=np.vstack((np.random.multivariate_normal([centerx,centerx],np.diag([sigma,sigma]),nbex//4),np.random.multivariate_normal([-centerx,-centerx],np.diag([sigma,sigma]),nbex//4)))
         xneg=np.vstack((np.random.multivariate_normal([-centerx,centerx],np.diag([sigma,sigma]),nbex//4),np.random.multivariate_normal([centerx,-centerx],np.diag([sigma,sigma]),nbex//4)))
         data=np.vstack((xpos,xneg))
-        y=np.hstack((np.ones(nbex/2),-np.ones(nbex//2)))
+        y=np.hstack((np.ones(nbex//2),-np.ones(nbex//2)))
 
     if data_type==2:
         #echiquier
