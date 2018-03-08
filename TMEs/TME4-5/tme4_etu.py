@@ -255,12 +255,7 @@ def learn_plot_perceptron(perceptron, trainx, trainy, testx, testy, gradient_des
     plot_data(trainx,trainy, title=title)
 
 
-
-
-    # éventuellement, sauver l'animation dans une vidéo
-    # anim.save('old_faithful.avi', bitrate=4000)
-
-
+    
 
 if __name__=="__main__":
     """ Tracer des isocourbes de l'erreur """
