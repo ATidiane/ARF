@@ -144,7 +144,7 @@ class Lineaire(object):
                 plot_data(datax, datay)
                 plt.pause(0.0000000000000001)
                 step += 1
-                #plt.close()
+                plt.close()
 
                 #if t == 0: line, = plt.plot(range(len(self.w[0])), self.w[0], 'b-')
                 #else: line.set_ydata(self.w[0])
@@ -161,7 +161,7 @@ class Lineaire(object):
                 self.w -= (self.eps * self.loss_g(batchx, batchy, self.w))
 
 
-    @bias_decorator
+    #@bias_decorator
     def fit(self,datax,datay,testx=None,testy=None,gradient_descent="batch",
             batch_size=10):
         """ :datax: donnees de train
@@ -184,15 +184,17 @@ class Lineaire(object):
         else: self.minibatch_fit(datax, datay, batch_size)
 
 
-    @bias_decorator
+    #@bias_decorator
     def predict(self,datax):
         if len(datax.shape)==1:
             datax = datax.reshape(1,-1)
 
-        return np.sign(np.dot(datax, self.w.T))
+        print('ici', datax.shape, self.w.T.shape)
+        return np.sign(datax.dot(self.w.T))
 
 
     def score(self,datax,datay):
+        print("inscore")
         return (1 - np.mean((self.predict(datax) == datay[:, np.newaxis])))
 
 
@@ -209,6 +211,8 @@ def load_usps(fn):
 
 def show_usps(data):
     plt.imshow(data.reshape((16,16)),interpolation="nearest",cmap="gray")
+    plt.colorbar()
+    plt.show()
 
 
 def plot_error(datax,datay,f,step=10):
@@ -250,46 +254,47 @@ def learn_plot_perceptron(perceptron, trainx, trainy, testx, testy, gradient_des
     plt.figure()
     plot_frontiere(testx,perceptron.predict,200)
     plot_data(testx,testy, title=title)
-    plt.savefig(gradient_descent+".png")
+    plt.show()
+#    plt.savefig(gradient_descent+".png")
 
 
 
 def main():
     """ Tracer des isocourbes de l'erreur """
 
-    plt.ion()
+#    plt.ion()
     trainx,trainy =  gen_arti(nbex=1000,data_type=0,epsilon=0.3)
     testx,testy =  gen_arti(nbex=1000,data_type=0,epsilon=0.3)
     grid,x1list,x2list=make_grid(xmin=-4,xmax=4,ymin=-4,ymax=4)
 
     # Plot error for test
-    plt.figure()
-    plot_error(trainx,trainy,mse)
-    plt.savefig("errormse")
-    plt.figure()
-    plot_error(trainx,trainy,hinge)
-    plt.savefig("errorhinge")
+    # plt.figure()
+    # plot_error(trainx,trainy,mse)
+    # plt.savefig("errormse")    
+    # plt.figure()
+    # plot_error(trainx,trainy,hinge)
+    # plt.savefig("errorhinge")
 
     # Batch gradient descent
     perceptron = Lineaire(loss=mse,loss_g=mse_g,max_iter=10000,eps=0.1,
                           bias=False)
-    learn_plot_perceptron(perceptron, trainx, trainy, testx, testy,
-                          gradient_descent = "batch",
-                          title = "Batch gradient descent")
+    # learn_plot_perceptron(perceptron, trainx, trainy, testx, testy,
+    #                       gradient_descent = "batch",
+    #                       title = "Batch gradient descent")
 
     # Stochastic gradient descent
     perceptron2 = Lineaire(loss=stochastic,loss_g=stochastic_g,max_iter=1,
                            eps=0.1,bias=False)
-    learn_plot_perceptron(perceptron2, trainx, trainy, testx, testy,
-                          gradient_descent = "stochastic",
-                          title = "Stochastic gradient descent")
+    # learn_plot_perceptron(perceptron2, trainx, trainy, testx, testy,
+    #                       gradient_descent = "stochastic",
+    #                       title = "Stochastic gradient descent")
 
     # Mini-Batch gradient descent
     perceptron3 = Lineaire(loss=mse,loss_g=mse_g,max_iter=1000,
                            eps=0.1,bias=False)
-    learn_plot_perceptron(perceptron3, trainx, trainy, testx, testy,
-                          gradient_descent = "minibatch",
-                          title = "Mini-Batch gradient descent")
+    # learn_plot_perceptron(perceptron3, trainx, trainy, testx, testy,
+    #                       gradient_descent = "minibatch",
+    #                       title = "Mini-Batch gradient descent")
 
     # Stochastic gradient descent Animation
     perceptron2 = Lineaire(loss=stochastic,loss_g=stochastic_g,max_iter=1,
@@ -300,17 +305,20 @@ def main():
 
     # USPS DATA
 
-    datax, datay = extract_usps("USPS_train.txt", 6, 9)
-    dataTx, dataTy = extract_usps("USPS_test.txt", 6, 9)
+    datax, datay = extract_usps("USPS_train.txt", 1, 6)
+    dataTx, dataTy = extract_usps("USPS_test.txt", 1, 6)
 
     # Affichage des données USPS
     show_usps(datax[1])
-
-    #usps_perceptron = Lineaire(loss=hinge,loss_g=hinge_g,max_iter=1,
-    #                       eps=0.1,bias=False)
-    #learn_plot_perceptron(usps_perceptron, datax, datay, dataTx, dataTy,
-    #                      gradient_descent = "minibatch",
-    #                      title = "Minibatch gradient descent")
+    print(datax.shape)
+    print(datax)
+    usps_perceptron = Lineaire(loss=hinge,loss_g=hinge_g,max_iter=1,
+                           eps=0.1,bias=False)
+    learn_plot_perceptron(usps_perceptron, datax, datay, dataTx, dataTy,
+                          gradient_descent = "batch",
+                          title = "Minibatch gradient descent")
+    usps_perceptron.fit(trainx,trainy, gradient_descent=gradient_descent)
+    print("Erreur : train %f, test %f\n"% (perceptron.score(trainx,trainy),perceptron.score(testx,testy)))
 
     #perceptron_usps = Lineaire(hinge,hinge_g,max_iter=1000,eps=0.1)
     #perceptron_usps.fit(datax,datay, gra)
