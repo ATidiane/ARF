@@ -1,0 +1,19 @@
+# -*- coding: utf-8 -*-
+
+def allow_bias(datax):
+    """ Ajoute une colonne de remplie de 1 à datax et retourne la nouvelle
+        matrice correspondante.
+    """
+    adjust = np.ones(datax.shape[0]).reshape(-1, 1)
+    return np.hstack((datax, adjust))
+
+
+def kernel_poly(datax):
+    """ Projette les données dans un espace polynomial, 6 dimensions """
+    ones = np.ones(datax.shape[0]).reshape(-1, 1)
+    x1carre = (datax[:,0]*datax[:,0]).reshape(-1, 1)
+    x2carre = (datax[:,1]*datax[:,1]).reshape(-1, 1)
+    x1x2 = (datax[:,0]*datax[:,1]).reshape(-1, 1)
+
+    print(x1carre.shape)
+    return np.hstack((ones, datax, x1carre, x2carre, x1x2))
