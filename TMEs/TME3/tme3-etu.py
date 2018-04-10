@@ -2,8 +2,8 @@
 """ ARF - TME3, Descente de gradient
 
 Auteurs:
-* BIZZOZZERO Nicolas
-* BALDE Ahmed
+* BALDE Ahmed Tidiane
+* CHANEMOUGAM Viniya
 """
 
 import numpy as np
@@ -68,7 +68,7 @@ def optimize2(fonc, dfonc, xinit, eps, max_iter=100):
     :param: max_iter, le nombre d'itérations.
     :return: un triplet (x_histo, f_histo, grad_histo).
     """
-    
+
     x_histo, f_histo, grad_histo = [xinit], [fonc(*xinit)], [dfonc(*xinit)]
 
     for t in range(max_iter):
@@ -125,13 +125,13 @@ def _plot_2D_compare(title, fonc=_test_1, dfonc=_dtest_1, xinit1=[2], xinit2=[2]
                      eps1=0.1, eps2=0.7):
 
     fig, (ax1, ax2) = plt.subplots(ncols=2, sharex=True, figsize=(9,7))
-    
+
     x_histo, f_histo, grad_histo = optimize2(fonc, dfonc, xinit1, eps1)
-    
+
     x = np.linspace(0, 2*np.pi, 30)
 
     plt.suptitle(title)
-    
+
     ax1.plot(x, fonc(x), 'c-', label="fonction f")
     ax1.plot(x_histo, fonc(x_histo), c='orange', marker='.', label="trajectoire de\nl'optimisation, eps={}".format(eps1), linewidth=0.3)
     ax1.legend()
@@ -144,7 +144,7 @@ def _plot_2D_compare(title, fonc=_test_1, dfonc=_dtest_1, xinit1=[2], xinit2=[2]
     for i in range(0, x_histo.shape[0], 2):
         ax2.plot(x_histo[i:i+2], fonc(x_histo[i:i+2]), c='orange', marker='.', linewidth=0.3)
         plt.pause(0.1)
-    
+
     plt.show()
 
 
@@ -158,11 +158,11 @@ def _plot_courbe(title, x_histo, max_iter):
     plt.suptitle(title)
     ax.plot(range(max_iter), logDif, 'b:')
     plt.show()
-    
+
 
 
 def _plot_3D(x_histo, f_histo, grad_histo, fonc):
-    
+
     # Grille de discretisation
     grid, xx, yy = make_grid(xmin=-1, xmax=1, ymin=-1, ymax=1)
 
@@ -173,7 +173,7 @@ def _plot_3D(x_histo, f_histo, grad_histo, fonc):
     # Affichage 2D
     plt.contourf(xx, yy, fonc(grid).reshape(xx.shape))
     fig = plt.figure()
-    
+
     # Construction du référentiel 3D
     ax = fig.gca(projection='3d')
     surf = ax.plot_surface(xx, yy, fonc(grid).reshape(xx.shape),
@@ -183,7 +183,7 @@ def _plot_3D(x_histo, f_histo, grad_histo, fonc):
     ax.plot(x_histo[:, 0], x_histo[:, 1], f_histo.ravel(), color="black")
     plt.show()
 
-    
+
 def main():
 
     #-------------------------- Fist 1D function
@@ -195,14 +195,14 @@ def main():
     _plot_2D_val_grad_f("xcos(x)\nen fonction du nombre d'itération,\n"
                         "les valeurs de f et du gradient de f",
                         x_histo, f_histo, grad_histo)
-    
+
     _plot_2D_compare(title="xcos(x)\nla fonction f et la trajectoire de\n"
                      "l'optimisation(les valeurs successives de f(x))",
                      fonc=_test_1, dfonc=_dtest_1, xinit1=[2], xinit2=[2],
                      eps1=0.1, eps2=0.8)
 
     _plot_courbe("xcos(x), courbe(t, log||xt - x*||)", x_histo, max_iter)
-    
+
     #_plot_3D(x_histo, f_histo, grad_histo, _test_1)
 
     #-------------------------- Second 1D function
@@ -213,31 +213,31 @@ def main():
     _plot_2D_val_grad_f("-log(x)+x^2\nen fonction du nombre d'itération,\n"
                         "les valeurs de f et du gradient de f",
                         x_histo, f_histo, grad_histo)
-    
+
     _plot_2D_compare(title="-log(x)+x^2\nla fonction f et la trajectoire de\n"
                      "l'optimisation(les valeurs successives de f(x))",
                      fonc=_test_2, dfonc=_dtest_2, xinit1=[2], xinit2=[2],
                      eps1=0.1, eps2=0.8)
 
     #_plot_3D(x_histo, f_histo, grad_histo, _test_2)
-    
+
     #-------------------------- 2d function Rosenbrock (or banana)
-        
+
     # x_histo, f_histo, grad_histo = optimize2(fonc=_test_3, dfonc=_dtest_3,
     #                                          xinit=[2], eps=0.1)
 
     # _plot_2D_val_grad_f("Rosenbrock\nen fonction du nombre d'itération,\n"
     #                     "les valeurs de f et du gradient de f",
     #                     x_histo, f_histo, grad_histo)
-    
+
     # _plot_2D_compare(title="Rosenbrock\nla fonction f et la trajectoire de\n"
     #                  "l'optimisation(les valeurs successives de f(x))",
     #                  fonc=_test_3, dfonc=_dtest_3, xinit1=[2], xinit2=[2, 0],
     #                  eps1=0.1, eps2=0.7)
 
     #_plot_3D(x_histo, f_histo, grad_histo, _test_3)
-    
 
-    
+
+
 if __name__ == '__main__':
     main()

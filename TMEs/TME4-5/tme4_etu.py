@@ -32,9 +32,9 @@ def learn_plot_perceptron2D(perceptron, trainx, trainy, testx, testy, gradient_d
     print("Erreur : train %f, test %f\n"% (perceptron.score(trainx,trainy),
                                            perceptron.score(testx,testy)))
     plt.figure()
-    plot_frontiere(testx,perceptron.predict,200)
+    plot_frontiere(testx,perceptron.predict,20)
     plot_data(testx,testy, title=title)
-    plt.show()
+    # plt.show()
     plt.savefig("gradent_descent.png")
 
 
