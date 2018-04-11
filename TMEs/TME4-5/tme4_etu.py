@@ -31,10 +31,9 @@ def learn_plot_perceptron2D(perceptron, trainx, trainy, testx, testy, gradient_d
     perceptron.fit(trainx,trainy, gradient_descent=gradient_descent)
     print("Erreur : train %f, test %f\n"% (perceptron.score(trainx,trainy),
                                            perceptron.score(testx,testy)))
-    plt.figure()
     plot_frontiere(testx,perceptron.predict,20)
     plot_data(testx,testy, title=title)
-    # plt.show()
+    plt.show()
     plt.savefig("gradent_descent.png")
 
 
@@ -45,70 +44,87 @@ def plot_cost_erreur(datax, datay):
     for i, cost in enumerate(func_cost):
         plt.figure()
         plot_error(datax, datay, cost)
-        # plt.savefig("error0_{}".format(i))
+        # plt.savefig("error0_{}".format(>i))
 
 
 
-################################################################################
-#------------------------------------ Main ------------------------------------#
-################################################################################
+#################################################################################
+#------------------------------------- Main ------------------------------------#
+#################################################################################
 
 def main():
     """ Tracer des isocourbes de l'erreur """
 
-    # plt.ion()
-    trainx,trainy =  gen_arti(nbex=1000,data_type=1 ,epsilon=0.3)
-    testx,testy =  gen_arti(nbex=1000,data_type=1,epsilon=0.3)
+    # plt.ion
+    trainx,trainy =  gen_arti(nbex=1000,data_type=0,epsilon=0.3)
+    testx,testy =  gen_arti(nbex=1000,data_type=0,epsilon=0.3)
     grid,x1list,x2list=make_grid(xmin=-4,xmax=4,ymin=-4,ymax=4)
 
     # Plot error for test
     # plot_cost_erreur(testx, testy)
 
     # Batch gradient descent
-    perceptron = Perceptron(loss=hinge,loss_g=hinge_g,max_iter=10000,eps=0.1,
-                            kernel="gaussian")
+    perceptron = Perceptron(loss=hinge,loss_g=hinge_g,max_iter=100,eps=0.1,
+                            kernel=None)
     learn_plot_perceptron2D(perceptron, trainx, trainy, testx, testy,
                           gradient_descent = "batch",
                           title = "Batch gradient descent")
 
 
+    perceptron_poly = Perceptron(loss=hinge,loss_g=hinge_g,max_iter=100,eps=0.1,
+                            kernel="polynomial")
+    learn_plot_perceptron2D(perceptron_poly, trainx, trainy, testx, testy,
+                          gradient_descent = "batch",
+                          title = "Batch gradient descent")
+
+
+    perceptron_gaussian = Perceptron(loss=hinge,loss_g=hinge_g,max_iter=100,eps=0.1,
+                            kernel="gaussian")
+    learn_plot_perceptron2D(perceptron_gaussian, trainx, trainy, testx, testy,
+                          gradient_descent = "batch",
+                          title = "Batch gradient descent")
+
+
     # # Stochastic gradient descent
-    # perceptron2 = Perceptron(loss=stochastic,loss_g=stochastic_g,max_iter=10,
-    #                        eps=0.1,bias=False)
-    # learn_plot_perceptron2D(perceptron2, trainx, trainy, testx, testy,
-    #                       gradient_descent = "stochastic",
-    #                       title = "Stochastic gradient descent")
+    perceptron_stochastic = Perceptron(loss=stochastic,loss_g=stochastic_g,
+                                       max_iter=50, eps=0.1, kernel=None)
+    learn_plot_perceptron2D(perceptron_stochastic, trainx, trainy, testx, testy,
+                          gradient_descent = "stochastic",
+                          title = "Stochastic gradient descent")
 
 
     # # Mini-Batch gradient descent
-    # perceptron3 = Perceptron(loss=hinge,loss_g=hinge_g,max_iter=1000,
-    #                        eps=0.1,bias=False)
-    # learn_plot_perceptron2D(perceptron3, trainx, trainy, testx, testy,
-    #                       gradient_descent = "minibatch",
-    #                       title = "Mini-Batch gradient descent")
+    perceptron_minibash = Perceptron(loss=hinge,loss_g=hinge_g,max_iter=100,
+                             eps=0.1, kernel=None)
+    learn_plot_perceptron2D(perceptron_minibash, trainx, trainy, testx, testy,
+                          gradient_descent = "minibatch",
+                          title = "Mini-Batch gradient descent")
 
 
-    # # Stochastic gradient descent Animation
-    # perceptron2 = Perceptron(loss=stochastic,loss_g=stochastic_g,max_iter=1,
-    #                        eps=0.1,bias=False)
-    # # learn_plot_perceptron2D(perceptron2, trainx, trainy, testx, testy,
-    # #                      gradient_descent = "stochastic_animation",
-    # #                      title = "Stochastic gradient descent")
+    # Stochastic gradient descent Animation
+    perceptron_stoch_anim = Perceptron(loss=stochastic,loss_g=stochastic_g,
+                                       max_iter=1, eps=0.1, kernel=None)
+    # learn_plot_perceptron2D(perceptron_stoch_anim, trainx, trainy, testx, testy,
+    #                      gradient_descent = "stochastic_animation",
+    #                      title = "Stochastic gradient descent")
 
 
     #############################################################################
     #------------------------------------ USPS ---------------------------------#
     #############################################################################
 
+    perceptron_usps = Perceptron(loss=hinge,loss_g=hinge_g,max_iter=500,
+                                 eps=0.1,kernel=None)
+
     # Matrice de poids 6 vs 9 and 1 vs 8
     fig, (ax1, ax2) = plt.subplots(ncols=2, sharex=True, sharey=True)
     plt.suptitle("Matrice de poids")
-    weight_matrix(6, 9, fig, ax1)
-    weight_matrix(1, 8, fig, ax2)
+    weight_matrix(6, 9, fig, perceptron_usps, ax1)
+    weight_matrix(1, 8, fig, perceptron_usps, ax2)
     plt.savefig("weight_matrix_qqlexs")
 
     # Matrice de poids 6 vs All
-    matrix_one_vs_all(6)
+    matrix_one_vs_all(6, perceptron_usps)
 
     # Courbes d'erreurs 6 vs All
     error_curves(6)

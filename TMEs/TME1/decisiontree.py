@@ -2,8 +2,9 @@
 
 import numpy as np
 from collections import Counter
-#import pydot  #pour l'affichage graphique d'arbres
+import pydotplus  #pour l'affichage graphique d'arbres
 import pickle as pkl
+
 
 ###############################
 # Fonctions auxiliaires
@@ -231,5 +232,5 @@ class DecisionTree(Classifier):
         return s+"}"
 
     def to_pdf(self,filename,dic_var=None):
-        pydot.graph_from_dot_data(self.to_dot(dic_var)).write_pdf(filename)
-
+       graph =  pydotplus.graph_from_dot_data(self.to_dot(dic_var))
+       graph.write_pdf(filename)

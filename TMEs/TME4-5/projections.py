@@ -25,14 +25,15 @@ def kernel_poly(datax):
     return np.hstack((datax, x1carre, x2carre, x1x2))
 
 
-def kernel_gaussian(datax, sigma=1):
+def kernel_gaussian(datax, trainx, sigma=1):
     """ Projection gaussienne de toutes les données """
 
-    row, col = datax.shape
-    gassMatrix = np.zeros((row, row))
+    rowd, col = datax.shape
+    rowt, col = trainx.shape
+    gassMatrix = np.zeros((rowd, rowt))
 
     for i, x in enumerate(datax):
-        for j, z in enumerate(datax):
+        for j, z in enumerate(trainx):
             gassMatrix[i,j] = gaussian(x.T, z.T, sigma)
 
     return gassMatrix

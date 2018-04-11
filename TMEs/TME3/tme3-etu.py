@@ -1,17 +1,15 @@
 # -*- coding: utf-8 -*-
 """ ARF - TME3, Descente de gradient
-
-Auteurs:
-* BALDE Ahmed Tidiane
-* CHANEMOUGAM Viniya
 """
 
 import numpy as np
 from numpy import random
 import matplotlib.pyplot as plt
-from matplotlib import cm
-from mpl_toolkits.mplot3d import Axes3D
 from math import inf
+from matplotlib import cm
+from logisticRegression import *
+from mpl_toolkits.mplot3d import Axes3D
+from sklearn.naive_bayes import GaussianNB
 
 
 def make_grid(data=None, xmin=-5, xmax=5, ymin=-5, ymax=5, step=20):
@@ -45,29 +43,6 @@ def optimize(fonc, dfonc, xinit, eps, max_iter=100):
     :param: max_iter, le nombre d'itérations.
     :return: un triplet (x_histo, f_histo, grad_histo).
     """
-    x_histo, f_histo, grad_histo = [xinit], [fonc(*xinit)], [[dfonc(*xinit)]]
-
-    for _ in range(max_iter):
-        # Calcul du gradient
-        # x = x_histo[-1] - (eps * grad_histo[-1])
-        x = (np.array(x_histo[-1]) - np.array([(np.array(x) * eps).tolist() for x in grad_histo[-1]])).tolist()
-        # Mise à jour
-        x_histo.append(x)
-        f_histo.append(fonc(*x))
-        grad_histo.append([dfonc(*x)])
-
-    return np.array(x_histo), np.array(f_histo), np.array(grad_histo)
-
-
-def optimize2(fonc, dfonc, xinit, eps, max_iter=100):
-    """ Applique l'algorithme du gradient.
-    :param: fonc, la fonction à optimiser.
-    :param: dfonc, le gradient de cette fonction.
-    :param: xinit, le point initial.
-    :param: eps, le pas du gradient.
-    :param: max_iter, le nombre d'itérations.
-    :return: un triplet (x_histo, f_histo, grad_histo).
-    """
 
     x_histo, f_histo, grad_histo = [xinit], [fonc(*xinit)], [dfonc(*xinit)]
 
@@ -75,6 +50,7 @@ def optimize2(fonc, dfonc, xinit, eps, max_iter=100):
         # Mise à jour de x à l'instant t
         epsDeltaFx = eps * np.array(grad_histo[-1])
         x = np.array(x_histo[-1]) - epsDeltaFx
+
         # Ajout x, f(x) et dfonc(x)
         x_histo.append(x)
         f_histo.append(fonc(*x))
@@ -126,27 +102,32 @@ def _plot_2D_compare(title, fonc=_test_1, dfonc=_dtest_1, xinit1=[2], xinit2=[2]
 
     fig, (ax1, ax2) = plt.subplots(ncols=2, sharex=True, figsize=(9,7))
 
-    x_histo, f_histo, grad_histo = optimize2(fonc, dfonc, xinit1, eps1)
+    x_histo, f_histo, grad_histo = optimize(fonc, dfonc, xinit1, eps1)
 
     x = np.linspace(0, 2*np.pi, 30)
 
     plt.suptitle(title)
 
     ax1.plot(x, fonc(x), 'c-', label="fonction f")
-    ax1.plot(x_histo, fonc(x_histo), c='orange', marker='.', label="trajectoire de\nl'optimisation, eps={}".format(eps1), linewidth=0.3)
+    ax1.plot(x_histo, fonc(x_histo), c='orange', marker='.',
+             label="trajectoire de\nl'optimisation, eps={}".format(eps1), linewidth=0.3)
     ax1.legend()
 
-    x_histo, f_histo, grad_histo = optimize2(fonc, dfonc, xinit2, eps2)
+    x_histo, f_histo, grad_histo = optimize(fonc, dfonc, xinit2, eps2)
 
     ax2.plot(x, fonc(x), 'c-', label="fonction f")
-    ax2.plot(x_histo[0], fonc(x_histo[0]), c='orange', marker='.', label="trajectoire de\nl'optimisation, eps={}".format(eps2), linewidth=0.3)
-    ax2.legend()
+    ax2.plot(x_histo[0], fonc(x_histo[0]), c='orange', marker='.',
+             label="trajectoire de\nl'optimisation, eps={}".format(eps2), linewidth=0.3)
+
+    # Uncomment the following code fot the live plot animation
     for i in range(0, x_histo.shape[0], 2):
         ax2.plot(x_histo[i:i+2], fonc(x_histo[i:i+2]), c='orange', marker='.', linewidth=0.3)
-        plt.pause(0.1)
+        plt.pause(0.01)
+        pass
+
+    ax2.legend()
 
     plt.show()
-
 
 
 def _plot_courbe(title, x_histo, max_iter):
@@ -160,28 +141,27 @@ def _plot_courbe(title, x_histo, max_iter):
     plt.show()
 
 
-
 def _plot_3D(x_histo, f_histo, grad_histo, fonc):
 
-    # Grille de discretisation
-    grid, xx, yy = make_grid(xmin=-1, xmax=1, ymin=-1, ymax=1)
+    # Construction du référentiel 3D
+    fig = plt.figure()
+    ax = fig.gca(projection='3d')
+    ax.set_title("Rosenbrock")
 
-    # Bidouiller by me
-    n = int(grid.shape[0]/2)
-    grid = grid[0:n]
+    # Grille de discretisation
+    grid, X, Y = make_grid(xmin=-1, xmax=1, ymin=-1, ymax=1)
 
     # Affichage 2D
-    plt.contourf(xx, yy, fonc(grid).reshape(xx.shape))
-    fig = plt.figure()
+    plt.contourf(X, Y, fonc(grid[:,0], grid[:,1]).reshape(X.shape))
 
-    # Construction du référentiel 3D
-    ax = fig.gca(projection='3d')
-    surf = ax.plot_surface(xx, yy, fonc(grid).reshape(xx.shape),
-                           rstride=1, cstride=1, cmap=cm.gist_rainbow,
-                           linewidth=0, antialiased=False)
-    fig.colorbar(surf)
-    ax.plot(x_histo[:, 0], x_histo[:, 1], f_histo.ravel(), color="black")
-    plt.show()
+    surf = ax.plot_surface(X, Y, fonc(X, Y), rstride=1, cstride=1,
+                           cmap=cm.gist_rainbow, linewidth=0, antialiased=False)
+
+    fig.colorbar(surf, shrink=0.5, aspect=5)
+
+    # not working
+    # ax.plot(x_histo[:, 0], x_histo[:, 1], f_histo.ravel(), color="black")
+    plt.savefig("banana.png")
 
 
 def main():
@@ -189,7 +169,7 @@ def main():
     #-------------------------- Fist 1D function
 
     max_iter = 100
-    x_histo, f_histo, grad_histo = optimize2(fonc=_test_1, dfonc=_dtest_1,
+    x_histo, f_histo, grad_histo = optimize(fonc=_test_1, dfonc=_dtest_1,
                                              xinit=[2], eps=0.1, max_iter=100)
 
     _plot_2D_val_grad_f("xcos(x)\nen fonction du nombre d'itération,\n"
@@ -203,11 +183,10 @@ def main():
 
     _plot_courbe("xcos(x), courbe(t, log||xt - x*||)", x_histo, max_iter)
 
-    #_plot_3D(x_histo, f_histo, grad_histo, _test_1)
 
     #-------------------------- Second 1D function
 
-    x_histo, f_histo, grad_histo = optimize2(fonc=_test_2, dfonc=_dtest_2,
+    x_histo, f_histo, grad_histo = optimize(fonc=_test_2, dfonc=_dtest_2,
                                              xinit=[2], eps=0.1)
 
     _plot_2D_val_grad_f("-log(x)+x^2\nen fonction du nombre d'itération,\n"
@@ -219,24 +198,52 @@ def main():
                      fonc=_test_2, dfonc=_dtest_2, xinit1=[2], xinit2=[2],
                      eps1=0.1, eps2=0.8)
 
-    #_plot_3D(x_histo, f_histo, grad_histo, _test_2)
 
     #-------------------------- 2d function Rosenbrock (or banana)
 
-    # x_histo, f_histo, grad_histo = optimize2(fonc=_test_3, dfonc=_dtest_3,
-    #                                          xinit=[2], eps=0.1)
+    x_histo, f_histo, grad_histo = optimize(fonc=_test_3, dfonc=_dtest_3,
+                                             xinit=[0, 1], eps=0.1)
 
-    # _plot_2D_val_grad_f("Rosenbrock\nen fonction du nombre d'itération,\n"
-    #                     "les valeurs de f et du gradient de f",
-    #                     x_histo, f_histo, grad_histo)
+    _plot_2D_val_grad_f("Rosenbrock\nen fonction du nombre d'itération,\n"
+                        "les valeurs de f et du gradient de f",
+                        x_histo, f_histo, grad_histo)
 
-    # _plot_2D_compare(title="Rosenbrock\nla fonction f et la trajectoire de\n"
-    #                  "l'optimisation(les valeurs successives de f(x))",
-    #                  fonc=_test_3, dfonc=_dtest_3, xinit1=[2], xinit2=[2, 0],
-    #                  eps1=0.1, eps2=0.7)
+    _plot_3D(x_histo, f_histo, grad_histo, _test_3)
 
-    #_plot_3D(x_histo, f_histo, grad_histo, _test_3)
 
+    #--------------------------- Logistic Regression
+
+    trainx, trainy = load_usps("USPS_train.txt")
+    testx, testy = load_usps("USPS_test.txt")
+
+    logisticReg = logisticRegression(loss_g=cost_f_g, max_iter=100,
+                                     epsilon=0.1)
+    #logisticReg.fit(trainx, trainy)
+
+    # Matrice de poids 6 vs 9 and 1 vs 8
+    fig, (ax1, ax2) = plt.subplots(ncols=2, sharex=True, sharey=True)
+    plt.suptitle("Matrice de poids")
+    weight_matrix(6, 9, fig, logisticReg, ax1)
+    weight_matrix(1, 8, fig, logisticReg, ax2)
+    plt.savefig("weight_matrix_qqlexs_LR")
+
+    # Matrice de poids 6 vs All
+    matrix_one_vs_all(6, logisticReg)
+
+    # Courbes d'erreurs 6 vs All
+    error_curves(6)
+
+    print("Erreur : train %f, test %f\n"% (logisticReg.score(trainx,trainy),
+                                           logisticReg.score(testx,testy)))
+
+    #--------------------------- Naïve Bayes
+
+    clf = GaussianNB()
+
+    clf.fit(trainx, trainy)
+
+    print("Erreur : train %f, test %f\n"% (1 - clf.score(trainx, trainy),
+                                           1 - clf.score(testx,testy)))
 
 
 if __name__ == '__main__':

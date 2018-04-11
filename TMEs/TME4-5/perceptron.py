@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from arftools import *
 from cost_functions import *
 from projections import *
 
@@ -20,18 +21,33 @@ class Perceptron(object):
         self.loss, self.loss_g = loss, loss_g
         self.kernel = kernel
 
-    def projection_decorator(fonc):
+    def projection_decorator_fit(fonc):
+        def adjust_datax(self, datax, *args, **kwargs):
+            self.trainx = datax
+            if self.kernel == "bias":
+                datax = allow_bias(datax)
+            elif self.kernel == "polynomial":
+                datax = kernel_poly(datax)
+            elif self.kernel == "gaussian":
+                datax = kernel_gaussian(datax, datax, 1.5)
+
+            return fonc(self, datax, *args, **kwargs)
+
+        return adjust_datax
+
+    def projection_decorator_predict(fonc):
         def adjust_datax(self, datax, *args, **kwargs):
             if self.kernel == "bias":
                 datax = allow_bias(datax)
             elif self.kernel == "polynomial":
                 datax = kernel_poly(datax)
             elif self.kernel == "gaussian":
-                datax = kernel_gaussian(datax)
+                datax = kernel_gaussian(datax, self.trainx, 0.1)
 
             return fonc(self, datax, *args, **kwargs)
 
         return adjust_datax
+
 
     def batch_fit(self, datax, datay):
         """ Classic gradient descent Learning """
@@ -95,7 +111,7 @@ class Perceptron(object):
                 self.w -= (self.eps * self.loss_g(batchx, batchy, self.w))
 
 
-    @projection_decorator
+    @projection_decorator_fit
     def fit(self,datax,datay,testx=None,testy=None,gradient_descent="batch",
             batch_size=10):
         """ :datax: donnees de train
@@ -104,7 +120,7 @@ class Perceptron(object):
             :testy: label de test
             :method: can be either, batch_fit, stochastic_fit or mini_batch_fit.
         """
-
+        self.datax = datax
         N = len(datay)
         datay = datay.reshape(-1,1)
 
@@ -121,12 +137,11 @@ class Perceptron(object):
         else: self.minibatch_fit(datax, datay, batch_size)
 
 
-    @projection_decorator
+    @projection_decorator_predict
     def predict(self, datax):
         if len(datax.shape)==1:
             datax = datax.reshape(-1, 1)
 
-        print(datax.shape, self.w.T.shape)
         return np.sign(datax.dot(self.w.T))
 
 

@@ -54,11 +54,13 @@ def extract_usps(fichier, firstclass, secondclass):
     return pixels69, pixels69y
 
 
-def weight_matrix(class1, class2, fig, ax=plt):
+def weight_matrix(class1, class2, fig, perceptron_usps, ax=plt):
     """ Prends deux classes et plot la matrice de poids correspondante à la
         classification entre les deux.
         :param fig: figure de subplots
         :param ax=plt: ax sur lequel on veut afficher la figure
+        :param perceptron: le perceptron que nous utiliserons, soit celui du
+        TME 4 soit, celui de sklearn.linear_model
         :return: un dessin de la matrice de poids
     """
 
@@ -66,26 +68,37 @@ def weight_matrix(class1, class2, fig, ax=plt):
     datax, datay = extract_usps("USPS_train.txt", class1, class2)
     dataTx, dataTy = extract_usps("USPS_test.txt", class1, class2)
     # Apprentissage des données usps
-    perceptron_usps = Perceptron(loss=hinge,loss_g=hinge_g,max_iter=1,
-                                 eps=0.1,kernel=None)
-    perceptron_usps.fit(datax, datay, gradient_descent="batch")
+    perceptron_usps.fit(datax, datay)
     print("======Entre les classes {} et {}======\n".format(class1, class2))
     err_learning = perceptron_usps.score(datax, datay)
     err_test = perceptron_usps.score(dataTx,dataTy)
-    print("Erreur : train %f, test %f\n"% (err_learning,
-                                           err_test))
+
     ax.set_title("{} vs {}".format(class1, class2))
-    matrix = ax.imshow(perceptron_usps.w.reshape((16,16)),interpolation="nearest",cmap="YlGnBu")
+
+    try:
+        matrix = ax.imshow(perceptron_usps.w.reshape((16,16)),
+                           interpolation="nearest",cmap="YlGnBu")
+
+        print("Erreur : train %f, test %f\n"% (err_learning,
+                                               err_test))
+    except AttributeError:
+        matrix = ax.imshow(perceptron_usps.coef_.reshape((16,16)),
+                           interpolation="nearest",cmap="YlGnBu")
+        print("Erreur : train %f, test %f\n"% (1-err_learning,
+                                               1-err_test))
+
     fig.colorbar(matrix, ax=ax)
 
     return err_learning, err_test
 
 
-def matrix_one_vs_all(class1):
+def matrix_one_vs_all(class1, perceptron_usps):
     """ Prends en entrée une seule classe (0..9) et affiche les différentes
         matrices de poids quand on entraine le perceptron contre toutes les
         autres classes. Au final 9 matrices de poids.
         :param class1: 0..9
+        :param perceptron: le perceptron que nous utiliserons, soit celui du
+        TME 4 soit, celui de sklearn.linear_model
         :return: 9 figures de matrice de poids.
     """
 
@@ -98,9 +111,10 @@ def matrix_one_vs_all(class1):
     for i in range(nrows):
         for j in range(ncols):
             if class2 == class1: class2 += 1
-            weight_matrix(6, class2, fig, ax[i, j])
+            weight_matrix(6, class2, fig, perceptron_usps, ax=ax[i, j])
             class2 += 1
 
+    fig.tight_layout(rect=[0, 0.03, 1, 0.93])
     plt.savefig("weight_matrix_{}vsAll".format(class1))
 
 
@@ -136,7 +150,7 @@ def error_curves(class1):
         err_learning, err_test = [], []
         for iter in x_iter:
             perceptron_usps = Perceptron(loss=hinge,loss_g=hinge_g,max_iter=iter,
-                                       eps=0.1,bias=False)
+                                         eps=0.1,kernel=None)
             perceptron_usps.fit(datax, datay, gradient_descent="batch")
             err_learning.append(perceptron_usps.score(datax, datay))
             err_test.append(perceptron_usps.score(dataTx, dataTy))
