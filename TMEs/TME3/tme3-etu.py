@@ -15,7 +15,7 @@ from sklearn.naive_bayes import GaussianNB
 def make_grid(data=None, xmin=-5, xmax=5, ymin=-5, ymax=5, step=20):
     """ Cree une grille sous forme de matrice 2d de la liste des points
     :return: une matrice 2d contenant les points de la grille, la liste x, la
-    liste y.
+    liste y
     """
     if data is not None:
         xmax, xmin, ymax, ymin = np.max(data[:,0]), np.min(data[:,0]),\
