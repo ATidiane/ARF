@@ -54,6 +54,24 @@ def extract_usps(fichier, firstclass, secondclass):
     return pixels69, pixels69y
 
 
+def test_clf_on_usps(clf, class1):
+    """ Train and test et classifier on USPS data given a class(6 for instance)
+        against all the other classes
+        :param clf: classifier
+        :param class1: a given class, let's say a number within(0,9)
+    """
+
+    for class2 in range(10):
+        if class2 == 6: continue
+        datax, datay = extract_usps("USPS_train.txt", class1, class2)
+        dataTx, dataTy = extract_usps("USPS_test.txt", class1, class2)
+
+        clf.fit(datax, datay)
+
+        print("Erreur : train %f, test %f\n"% (1 - clf.score(datax, datay),
+                                           1 - clf.score(dataTx, dataTy)))
+
+
 def weight_matrix(class1, class2, fig, perceptron_usps, ax=plt):
     """ Prends deux classes et plot la matrice de poids correspondante à la
         classification entre les deux.

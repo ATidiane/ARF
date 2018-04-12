@@ -2,6 +2,11 @@
 """ ARF - TME3, Descente de gradient
 """
 
+import sys
+sys.path.insert(0, '../TME4-5')
+
+from usps import *
+
 import numpy as np
 from numpy import random
 import matplotlib.pyplot as plt
@@ -11,11 +16,10 @@ from logisticRegression import *
 from mpl_toolkits.mplot3d import Axes3D
 from sklearn.naive_bayes import GaussianNB
 
-
 def make_grid(data=None, xmin=-5, xmax=5, ymin=-5, ymax=5, step=20):
     """ Cree une grille sous forme de matrice 2d de la liste des points
     :return: une matrice 2d contenant les points de la grille, la liste x, la
-    liste y.
+    liste y
     """
     if data is not None:
         xmax, xmin, ymax, ymin = np.max(data[:,0]), np.min(data[:,0]),\
@@ -60,26 +64,32 @@ def optimize(fonc, dfonc, xinit, eps, max_iter=100):
 
 
 def _test_1(x):
+    """ """
     return x * np.cos(x)
 
 
 def _dtest_1(x):
+    """ """
     return np.cos(x) - (x * np.sin(x))
 
 
 def _test_2(x):
+    """ """
     return -np.log(x) + x**2
 
 
 def _dtest_2(x):
+    """ """
     return (2 * x) - (1 / x)
 
 
 def _test_3(x1, x2):
+    """ """
     return 100 * ((x2 - (x1 ** 2)) ** 2) + ((1 - x1)**2)
 
 
 def _dtest_3(x1, x2):
+    """ """
     return (-2 * (1 - x1) - 400 * x1 * (-x1**2 + x2)), (200 * (-x1**2 + x2))
 
 
@@ -94,6 +104,8 @@ def _plot_2D_val_grad_f(title, x_histo, f_histo, grad_histo):
     ax.set_ylabel(u"f(x) et ∇f(x)")
     ax.legend(loc=2)
 
+    plt.tight_layout()
+    # plt.savefig(title)
     plt.show()
 
 
@@ -130,14 +142,18 @@ def _plot_2D_compare(title, fonc=_test_1, dfonc=_dtest_1, xinit1=[2], xinit2=[2]
     plt.show()
 
 
-def _plot_courbe(title, x_histo, max_iter):
+def _plot_courbe(title, x_histo, x_histo2, max_iter):
 
     xetoile = x_histo[-1]
-    logDif = [np.log(np.abs(xt - xetoile)) for xt in x_histo[:-1]]
+    logDif = [np.log(np.linalg.norm(np.array([xt - xetoile]))) for xt in x_histo[:-1]]
+    logDif2 = [np.log(np.linalg.norm(np.array([xt - xetoile]))) for xt in x_histo2[:-1]]
 
     fig, ax = plt.subplots()
     plt.suptitle(title)
-    ax.plot(range(max_iter), logDif, 'b:')
+    ax.plot(range(max_iter), logDif, 'b:', label="eps=0.1")
+    ax.plot(range(max_iter), logDif2, 'r:', label="eps=0.8")
+    plt.legend()
+    plt.savefig(title)
     plt.show()
 
 
@@ -161,7 +177,8 @@ def _plot_3D(x_histo, f_histo, grad_histo, fonc):
 
     # not working
     # ax.plot(x_histo[:, 0], x_histo[:, 1], f_histo.ravel(), color="black")
-    plt.savefig("banana.png")
+    # plt.savefig("banana.png")
+    plt.show()
 
 
 def main():
@@ -171,6 +188,8 @@ def main():
     max_iter = 100
     x_histo, f_histo, grad_histo = optimize(fonc=_test_1, dfonc=_dtest_1,
                                              xinit=[2], eps=0.1, max_iter=100)
+    x_histo2, f_histo2, grad_histo2 = optimize(fonc=_test_1, dfonc=_dtest_1,
+                                             xinit=[2], eps=0.8, max_iter=100)
 
     _plot_2D_val_grad_f("xcos(x)\nen fonction du nombre d'itération,\n"
                         "les valeurs de f et du gradient de f",
@@ -181,13 +200,15 @@ def main():
                      fonc=_test_1, dfonc=_dtest_1, xinit1=[2], xinit2=[2],
                      eps1=0.1, eps2=0.8)
 
-    _plot_courbe("xcos(x), courbe(t, log||xt - x*||)", x_histo, max_iter)
+    _plot_courbe("xcos(x), courbe(t, log||xt - x*||)", x_histo, x_histo2, max_iter)
 
 
     #-------------------------- Second 1D function
 
     x_histo, f_histo, grad_histo = optimize(fonc=_test_2, dfonc=_dtest_2,
                                              xinit=[2], eps=0.1)
+    x_histo2, f_histo2, grad_histo2 = optimize(fonc=_test_2, dfonc=_dtest_2,
+                                             xinit=[2], eps=0.8)
 
     _plot_2D_val_grad_f("-log(x)+x^2\nen fonction du nombre d'itération,\n"
                         "les valeurs de f et du gradient de f",
@@ -199,6 +220,7 @@ def main():
                      eps1=0.1, eps2=0.8)
 
 
+    _plot_courbe("-log(x)+x^2, courbe(t, log||xt - x*||)", x_histo, x_histo2, max_iter)
     #-------------------------- 2d function Rosenbrock (or banana)
 
     x_histo, f_histo, grad_histo = optimize(fonc=_test_3, dfonc=_dtest_3,
@@ -233,17 +255,11 @@ def main():
     # Courbes d'erreurs 6 vs All
     error_curves(6)
 
-    print("Erreur : train %f, test %f\n"% (logisticReg.score(trainx,trainy),
-                                           logisticReg.score(testx,testy)))
-
     #--------------------------- Naïve Bayes
 
-    clf = GaussianNB()
+    clf_gaussian = GaussianNB()
 
-    clf.fit(trainx, trainy)
-
-    print("Erreur : train %f, test %f\n"% (1 - clf.score(trainx, trainy),
-                                           1 - clf.score(testx,testy)))
+    test_clf_on_usps(clf_gaussian, 6)
 
 
 if __name__ == '__main__':
