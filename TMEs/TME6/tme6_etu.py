@@ -1,27 +1,30 @@
 # -*- coding: utf-8 -*-
 import sys
-sys.path.insert(0, '../TME4-5')
+
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn import model_selection, multiclass, svm
+from sklearn.linear_model import Perceptron
 
 from arftools import *
 from usps import *
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.linear_model import Perceptron
-from sklearn import svm, model_selection, multiclass
+
+sys.path.insert(0, '../TME4-5')
 
 
 def plotAll_in_subplots(testx, testy, f, ax=plt):
     """ Plot la frontière ainsi que les données sur l'axe ax """
 
     # Plot frontière
-    grid,x,y=make_grid(data=testx,step=50)
+    grid, x, y = make_grid(data=testx, step=50)
     ax.contourf(x, y, f(grid).reshape(x.shape), 255)
 
     # Plot data
     cols = ["red", "green", "blue", "orange", "black", "cyan"]
-    marks = [".","+","*","o","x","^"]
-    for i,l in enumerate(sorted(list(set(testy.flatten())))):
-        ax.scatter(testx[testy==l,0],testx[testy==l,1],c=cols[i],marker=marks[i])
+    marks = [".", "+", "*", "o", "x", "^"]
+    for i, l in enumerate(sorted(list(set(testy.flatten())))):
+        ax.scatter(testx[testy == l, 0], testx[testy == l, 1],
+                   c=cols[i], marker=marks[i])
 
 
 def linear_model(perceptron, data_type=0, epsilon=0.3, ax=plt):
@@ -29,8 +32,8 @@ def linear_model(perceptron, data_type=0, epsilon=0.3, ax=plt):
         linear_model et applique sur les data_type 0..2
     """
 
-    trainx,trainy =  gen_arti(nbex=1000,data_type=data_type,epsilon=epsilon)
-    testx,testy =  gen_arti(nbex=1000,data_type=data_type,epsilon=epsilon)
+    trainx, trainy = gen_arti(nbex=1000, data_type=data_type, epsilon=epsilon)
+    testx, testy = gen_arti(nbex=1000, data_type=data_type, epsilon=epsilon)
 
     # Learning
     perceptron.fit(trainx, trainy)
@@ -65,9 +68,9 @@ def comparaison_usps(perceptron):
     error_curves(6)
 
 
-#################################################################################
-#------------------------------ SVM et GridSearch ------------------------------#
-#################################################################################
+##########################################################################
+#------------------------------ SVM et GridSearch -----------------------#
+##########################################################################
 
 def plot_frontiere_proba(data, f, step=20):
     grid, x, y = make_grid(data=data, step=step)
@@ -79,26 +82,26 @@ def SVM(data_type=0, epsilon=0.3, C=10, kernel='linear',
     """ Plot ls différents kernels appliqués sur les différents types de données
     """
 
-    trainx,trainy =  gen_arti(nbex=1000,data_type=data_type,epsilon=epsilon)
-    testx,testy =  gen_arti(nbex=1000,data_type=data_type,epsilon=epsilon)
+    trainx, trainy = gen_arti(nbex=1000, data_type=data_type, epsilon=epsilon)
+    testx, testy = gen_arti(nbex=1000, data_type=data_type, epsilon=epsilon)
 
     s = svm.SVC(C=C, kernel=kernel, probability=probability, max_iter=max_iter)
-    
+
     s.fit(trainx, trainy)
 
     err_train = round(1 - s.score(trainx, trainy), 3)
     err_test = round(1 - s.score(testx, testy), 3)
 
-    print("Erreur : train %f, test %f\n"% (err_train, err_test))
+    print("Erreur : train %f, test %f\n" % (err_train, err_test))
 
     ax.set_title("SVM {} kernel \non data_type {}".format(kernel, data_type))
 
-    f = lambda x: s.predict_proba(x)[:, 0]
+    def f(x): return s.predict_proba(x)[:, 0]
     plotAll_in_subplots(testx, testy, f, ax)
 
     ax.legend(["err_train: {}\nerr_test: {}".format(err_train, err_test)],
               loc='lower left', bbox_to_anchor=(0, 1.02, 1, 0.2),
-               ncol=2, fancybox=True, shadow=True)
+              ncol=1, fancybox=True, shadow=True)
 
 
 def svm_gridSearch(trainx, trainy, testx, testy):
@@ -125,10 +128,9 @@ def svm_gridSearch(trainx, trainy, testx, testy):
     #           % (mean_score, scores.std() * 2, params))
 
 
-
-#################################################################################
+##########################################################################
 #-------------------------- Apprentissage multi-classe -------------------------#
-#################################################################################
+##########################################################################
 
 def multiClass(trainx, trainy, testx, testy):
     """ Traitement des cas multiclasses à partir de classifieurs binaires """
@@ -144,21 +146,20 @@ def multiClass(trainx, trainy, testx, testy):
     err_UnvsAll_train = round(1 - UnvsAll.score(trainx, trainy), 3)
     err_UnvsAll_test = round(1 - UnvsAll.score(testx, testy), 3)
 
-    
-    print("Err_1vs1 : train %f, test %f\n"% (err_Unvs1_train, err_Unvs1_test))
-    print("Err_1vsAll : train %f, test %f\n"% (err_UnvsAll_train,
-                                               err_UnvsAll_test))
+    print("Err_1vs1 : train %f, test %f\n" % (err_Unvs1_train, err_Unvs1_test))
+    print("Err_1vsAll : train %f, test %f\n" % (err_UnvsAll_train,
+                                                err_UnvsAll_test))
 
     print("========== Prediction UnvsUn ==============")
     print(Unvs1.predict(testx).shape)
 
     print("========= Prediction UnvsRest =============")
     print(UnvsAll.predict(testx).shape)
-    
 
-#################################################################################
-#--------------------------------- String Kernel -------------------------------#
-#################################################################################
+
+##########################################################################
+#--------------------------------- String Kernel ------------------------#
+##########################################################################
 
 def sous_sequences(s):
     s = [i for i in range(1, len(s) + 1)]
@@ -200,9 +201,9 @@ def kernel_string(sigma_n, s, t, lmda=1):
     return rep
 
 
-#################################################################################
-#------------------------------------- Main ------------------------------------#
-#################################################################################
+##########################################################################
+#------------------------------------- Main -----------------------------#
+##########################################################################
 
 def main():
     """ Fonction main """
@@ -211,7 +212,7 @@ def main():
     perceptron = Perceptron(max_iter=500, n_jobs=-1)
 
     # Perceptron du linear model sur les différents types de données
-    fig_lm, ax_lm = plt.subplots(ncols=3, figsize=(10,6))
+    fig_lm, ax_lm = plt.subplots(ncols=3, figsize=(10, 6))
     for dtype in range(3):
         linear_model(perceptron, data_type=dtype, epsilon=0.3, ax=ax_lm[dtype])
 
@@ -222,18 +223,18 @@ def main():
 
     # Application des différents kernels sur l'ensemble des types de données
     kernels = ['linear', 'poly', 'rbf', 'sigmoid']
-    fig_svm, ax_svm = plt.subplots(ncols=4, nrows=3, sharex=True, figsize=(25,15))
+    fig_svm, ax_svm = plt.subplots(
+        ncols=4, nrows=3, sharex=True, figsize=(25, 15))
     for dtype in range(3):
         for j, kernel in enumerate(kernels):
-            SVM(data_type=dtype, epsilon=0.0001, C=50, kernel=kernel, probability=True,
-                max_iter=100, ax=ax_svm[dtype][j])
+            SVM(data_type=dtype, epsilon=0.01, C=1, kernel=kernel,
+                probability=True, max_iter=50, ax=ax_svm[dtype][j])
 
     fig_svm.tight_layout()
     # plt.savefig("svm_data_kernel.png")
     plt.show()
 
-
-    #------------------------------- Grid Search
+    # ------------------------------- Grid Search
 
     # Données 2D artificiels
     trainx, trainy = gen_arti(nbex=1000, data_type=0, epsilon=0.3)
@@ -245,16 +246,13 @@ def main():
     testux, testuy = load_usps("USPS_test.txt")
     # svm_gridSearch(trainux, trainuy, testux, testuy)
 
-    #------------------------------- Multi Class
+    # ------------------------------- Multi Class
 
     multiClass(trainx, trainy, testx, testy)
     multiClass(trainux, trainuy, testux, testuy)
 
-    #------------------------------- String Kernel
+    # ------------------------------- String Kernel
 
 
-
-
-
-if __name__=="__main__":
+if __name__ == "__main__":
     main()
