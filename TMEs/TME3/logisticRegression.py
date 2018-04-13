@@ -1,18 +1,21 @@
 # -*- coding: utf-8 -*-
 
 import sys
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+from cost_functions import *
+from usps import *
+
 sys.path.insert(0, '../TME4-5')
 
-from usps import *
-from cost_functions import *
-import numpy as np
-import matplotlib.pyplot as plt
 
 
 def sigmoid(z):
     """ Retourne la fonction sigmoide """
 
-    return 1/(1 + np.exp(-z))
+    return 1 / (1 + np.exp(-z))
 
 
 def cost_f_g(datax, datay, w):
@@ -38,7 +41,6 @@ class logisticRegression:
         self.max_iter = max_iter
         self.epsilon = epsilon
 
-
     def fit(self, datax, datay):
         """ Apprentissage de la logistique regression sur les données de train,
             Optimisation du paramètre w par la descente de gradient.
@@ -48,20 +50,18 @@ class logisticRegression:
 
         self.w = np.random.random((1, datax.shape[1]))
         for _ in range(self.max_iter):
-            self.w -= self.epsilon*cost_f_g(datax, datay, self.w)
-
+            self.w -= self.epsilon * cost_f_g(datax, datay, self.w)
 
     def predict(self, datax):
         """ Prediction des données """
 
         D = datax.shape[0]
-        fx = np.zeros((D,1))
+        fx = np.zeros((D, 1))
 
         for i, x in enumerate(datax):
             z = self.w.dot(x.T)
             fx[i] = 1 if sigmoid(z) >= 0.5 else -1
         return fx
-
 
     def score(self, datax, datay):
         """ Evaluation de la logistic Regression """

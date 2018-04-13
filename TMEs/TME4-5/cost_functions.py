@@ -39,12 +39,6 @@ def hinge(datax, datay, w):
     return np.maximum(0, moinsyfx).mean()
 
 
-# @decorator_vec
-# def hinge_g(datax, datay, w):
-#     """ retourne le gradient moyen de l'erreur hinge """
-#     h = np.array((datay * np.dot(datax, w.T)) < 0)
-#     return np.mean(h * datax * datay)
-
 @decorator_vec
 def hinge_g(datax, datay, w, activation=np.sign):
     """ Retourne le gradient de l'erreur hinge """
