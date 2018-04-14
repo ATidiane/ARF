@@ -3,17 +3,18 @@
 import numpy as np
 
 
-################################################################################
+##########################################################################
 #-------------------------------Cost functions --------------------------------#
-################################################################################
+##########################################################################
 
 
 def decorator_vec(fonc):
-    def vecfonc(datax,datay,w,*args,**kwargs):
-        if not hasattr(datay,"__len__"):
+    def vecfonc(datax, datay, w, *args, **kwargs):
+        if not hasattr(datay, "__len__"):
             datay = np.array([datay])
-        datax,datay,w =  datax.reshape(len(datay),-1),datay.reshape(-1,1),w.reshape((1,-1))
-        return fonc(datax,datay,w,*args,**kwargs)
+        datax, datay, w = datax.reshape(
+            len(datay), -1), datay.reshape(-1, 1), w.reshape((1, -1))
+        return fonc(datax, datay, w, *args, **kwargs)
     return vecfonc
 
 
@@ -27,8 +28,8 @@ def mse(datax, datay, w):
 @decorator_vec
 def mse_g(datax, datay, w):
     """ retourne le gradient moyen de l'erreur au moindres carres """
-    # 2 x (w.x - y)²
-    return np.mean(2 * ((np.dot(datax, w.T)) - datay)**2)
+    # 2 x (w.x - y)/m
+    return np.mean(2 * (np.dot(datax, w.T) - datay))
 
 
 @decorator_vec
@@ -46,18 +47,17 @@ def hinge_g(datax, datay, w, activation=np.sign):
     return (np.sum(cost, axis=0) / len(datax))  # Normalisation
 
 
-
 def stochastic(vectorx, vectory, w):
     """ Retourne l'erreur aux moindres carres pour UN exemple de data,
         cette pratique de calculer la descente de gradient juste pour un ex
         à chaque itération est appelée descente de gradient stochastique ou
         Stochastic gradient descent.
     """
-    return ((np.dot(vectorx.reshape(1,-1), w.T) - vectory)**2)/2
+    return ((np.dot(vectorx.reshape(1, -1), w.T) - vectory)**2) / 2
 
 
 def stochastic_g(vectorx, vectory, w):
     """ Retourne le gradient de l'erreur aux moindres carres pour UN exemple de
         datax.
     """
-    return (np.dot(vectorx.reshape(1,-1), w.T) - vectory)
+    return (np.dot(vectorx.reshape(1, -1), w.T) - vectory)

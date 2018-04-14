@@ -1,19 +1,25 @@
 # -*- coding: utf-8 -*-
 import sys
+sys.path.insert(0, '../TME4-5')
 
 import matplotlib.pyplot as plt
-import numpy as np
 from sklearn import model_selection, multiclass, svm
 from sklearn.linear_model import Perceptron
+from itertools import combinations
 
-from arftools import *
-from usps import *
-
-sys.path.insert(0, '../TME4-5')
+from arftools import make_grid, gen_arti
+from usps import weight_matrix, error_curves, matrix_one_vs_all, load_usps
 
 
 def plotAll_in_subplots(testx, testy, f, ax=plt):
-    """ Plot la frontière ainsi que les données sur l'axe ax """
+    """ Plot la frontière ainsi que les données sur l'axe ax
+
+    :param testx: Contient les exemples de la base de test
+    :param testy: Labels de la base de test
+    :param f: fonction de prédiction
+    :param ax: axe sur lequel affiché le graphique.
+
+    """
 
     # Plot frontière
     grid, x, y = make_grid(data=testx, step=50)
@@ -29,10 +35,17 @@ def plotAll_in_subplots(testx, testy, f, ax=plt):
 
 def linear_model(perceptron, data_type=0, epsilon=0.3, ax=plt):
     """ Utilise le perceptron passé en paramètre en l'occurence celui de
-        linear_model et applique sur les data_type 0..2
+        sklearn.
+    :param perceptron: Perceptron initialisé, soit pour les données
+                       artificiels, soit, pour les données USPS.
+    :param data_type: Différents types de données: 0, 1, 2
+    :param epsilon: Bruit dans les données
+    :param ax: axe sur lequel affiché le graphique.
+
     """
 
-    trainx, trainy = gen_arti(nbex=1000, data_type=data_type, epsilon=epsilon)
+    trainx, trainy = gen_arti(
+        nbex=1000, data_type=data_type, epsilon=epsilon)
     testx, testy = gen_arti(nbex=1000, data_type=data_type, epsilon=epsilon)
 
     # Learning
@@ -49,11 +62,11 @@ def linear_model(perceptron, data_type=0, epsilon=0.3, ax=plt):
 
 def comparaison_usps(perceptron):
     """ Genere les courbes d'erreurs en apprentissage et en test pour la classe
-        6 vs All, les différentes matrices de poids correspondantes ainsi que
-        la matrice de poids 6 vs 9 et 1 vs 8
-        :param perceptron:  perceptron utilisé
-    """
 
+    :param perceptron: Perceptron initialisé, soit pour les données
+                       artificiels, soit pour les données USPS.
+
+    """
     # Matrice de poids 6 vs 9 and 1 vs 8
     fig, (ax1, ax2) = plt.subplots(ncols=2, sharex=True, sharey=True)
     plt.suptitle("Matrice de poids")
@@ -69,10 +82,20 @@ def comparaison_usps(perceptron):
 
 
 ##########################################################################
-#------------------------------ SVM et GridSearch -----------------------#
+# ------------------------------ SVM et GridSearch --------------------- #
 ##########################################################################
 
 def plot_frontiere_proba(data, f, step=20):
+    """FIXME! briefly describe function
+
+    :param data: Données pour lesquels affichées la frontière.
+    :param f: fonction de prédiction
+    :param step:
+    :returns:
+    :rtype:
+
+    """
+
     grid, x, y = make_grid(data=data, step=step)
     plt.contourf(x, y, f(grid).reshape(x.shape), 255)
 
@@ -80,6 +103,15 @@ def plot_frontiere_proba(data, f, step=20):
 def SVM(data_type=0, epsilon=0.3, C=10, kernel='linear',
         probability=True, max_iter=100, ax=plt):
     """ Plot ls différents kernels appliqués sur les différents types de données
+
+    :param data_type: Différents types de données: 0, 1, 2
+    :param epsilon: Bruit dans les données
+    :param C: pénalité
+    :param kernel: kernel utilisé
+    :param probability: Booléen permettant l'utilisation de la frontière ou nn.
+    :param max_iter: Maximum d'itérations
+    :param ax: axe sur lequel affiché le graphique.
+
     """
 
     trainx, trainy = gen_arti(nbex=1000, data_type=data_type, epsilon=epsilon)
@@ -96,7 +128,11 @@ def SVM(data_type=0, epsilon=0.3, C=10, kernel='linear',
 
     ax.set_title("SVM {} kernel \non data_type {}".format(kernel, data_type))
 
-    def f(x): return s.predict_proba(x)[:, 0]
+    if probability:
+        def f(x): return s.predict_proba(x)[:, 0]
+    else:
+        def f(x): return s.decision_function(x)
+
     plotAll_in_subplots(testx, testy, f, ax)
 
     ax.legend(["err_train: {}\nerr_test: {}".format(err_train, err_test)],
@@ -105,7 +141,14 @@ def SVM(data_type=0, epsilon=0.3, C=10, kernel='linear',
 
 
 def svm_gridSearch(trainx, trainy, testx, testy):
-    """ Recherche des meilleurs paramètres à appliquer sur ces données """
+    """ Recherche des meilleurs paramètres à appliquer sur ces données
+
+    :param trainx: Contient les exemples de la base d'apprentissage
+    :param trainy: Labels de la base d'apprentissage
+    :param testx: Contient les exemples de la base de test
+    :param testy: Labels de la base de test
+
+    """
 
     parameters = {'C': [1, 5, 10, 20, 40, 80, 150, 250, 500],
                   'kernel': ['linear', 'rbf', 'poly', 'sigmoid'],
@@ -129,11 +172,18 @@ def svm_gridSearch(trainx, trainy, testx, testy):
 
 
 ##########################################################################
-#-------------------------- Apprentissage multi-classe -------------------------#
+# -------------------------- Apprentissage multi-classe ---------------- #
 ##########################################################################
 
 def multiClass(trainx, trainy, testx, testy):
-    """ Traitement des cas multiclasses à partir de classifieurs binaires """
+    """ Traitement des cas multiclasses à partir de classifieurs binaires
+
+    :param trainx: Contient les exemples de la base d'apprentissage
+    :param trainy: Labels de la base d'apprentissage
+    :param testx: Contient les exemples de la base de test
+    :param testy: Labels de la base de test
+
+    """
 
     Unvs1 = multiclass.OneVsOneClassifier(svm.LinearSVC(random_state=0))
     UnvsAll = multiclass.OneVsRestClassifier(svm.LinearSVC(random_state=0))
@@ -158,36 +208,57 @@ def multiClass(trainx, trainy, testx, testy):
 
 
 ##########################################################################
-#--------------------------------- String Kernel ------------------------#
+# --------------------------------- String Kernel ---------------------- #
 ##########################################################################
 
 def sous_sequences(s):
+    """FIXME! briefly describe function
+
+    :param s:
+    :returns:
+    :rtype:
+
+    """
+
     s = [i for i in range(1, len(s) + 1)]
     return [list(combinations(s, i) for i in range(1, len(s) + 1))]
 
 
 def l(i):
-    """ Longueur d'une sous-sequence """
+    """ Longueur d'une sous-sequence
+
+    :param i:
+
+    """
     return i[-1] - i[0] + 1
 
 
 def proj(s, lmda=1):
-    """ Projection pour une sous-séquence """
+    """ Projection pour une sous-séquence
+
+    :param s:
+    :param lmda:
+
+    """
+
     if lmda > 1:
         raise ValueError
 
-    list_sous_sequences, slamda = sous_sequences(s), 0
+    list_sous_sequences, s_lamda = sous_sequences(s), 0
     for i in list_sous_sequences:
-        s_lmda += lmda**l(i)
+        s_lamda += lmda**l(i)
 
-    return s_lmda
+    return s_lamda
 
 
 def kernel_string(sigma_n, s, t, lmda=1):
     """ Kernel string
-        :param lmda: lambda <= 1
-        :param sigma_n: ensemble de mots
-        :param s: mot s
+
+    :param sigma_n:
+    :param s:
+    :param t:
+    :param lmda:
+
     """
 
     sous_seqi = sous_sequences(s)
@@ -202,7 +273,7 @@ def kernel_string(sigma_n, s, t, lmda=1):
 
 
 ##########################################################################
-#------------------------------------- Main -----------------------------#
+# ------------------------------------- Main --------------------------- #
 ##########################################################################
 
 def main():
@@ -227,11 +298,11 @@ def main():
         ncols=4, nrows=3, sharex=True, figsize=(25, 15))
     for dtype in range(3):
         for j, kernel in enumerate(kernels):
-            SVM(data_type=dtype, epsilon=0.01, C=1, kernel=kernel,
-                probability=True, max_iter=50, ax=ax_svm[dtype][j])
+            SVM(data_type=dtype, epsilon=0, C=1, kernel=kernel,
+                probability=False, max_iter=-1, ax=ax_svm[dtype][j])
 
     fig_svm.tight_layout()
-    # plt.savefig("svm_data_kernel.png")
+    plt.savefig("svm_data_kernel_rapport.png")
     plt.show()
 
     # ------------------------------- Grid Search

@@ -1,15 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import sys
-
-import matplotlib.pyplot as plt
 import numpy as np
-
-from cost_functions import *
-from usps import *
-
-sys.path.insert(0, '../TME4-5')
-
 
 
 def sigmoid(z):
@@ -44,7 +35,7 @@ class logisticRegression:
     def fit(self, datax, datay):
         """ Apprentissage de la logistique regression sur les données de train,
             Optimisation du paramètre w par la descente de gradient.
-            :param datax: Exemples du dataset
+            :param datax: Exemples du datasetExemples du dataset
             :param datay: Labels du dataset
         """
 
@@ -53,7 +44,11 @@ class logisticRegression:
             self.w -= self.epsilon * cost_f_g(datax, datay, self.w)
 
     def predict(self, datax):
-        """ Prediction des données """
+        """ Prediction des données
+
+        :param datax: Exemples du dataset
+
+        """
 
         D = datax.shape[0]
         fx = np.zeros((D, 1))
@@ -64,6 +59,11 @@ class logisticRegression:
         return fx
 
     def score(self, datax, datay):
-        """ Evaluation de la logistic Regression """
+        """ Evaluation de la logistic Regression
+
+        :param datax: Exemples du dataset
+        :param datay: Labels du dataset
+
+        """
 
         return (1 - np.mean((self.predict(datax) == datay[:, np.newaxis])))
