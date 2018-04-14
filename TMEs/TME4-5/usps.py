@@ -3,7 +3,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from perceptron import *
-
+from sklearn.linear_model import Perceptron
 
 ################################################################################
 #-------------------------------- Données USPS --------------------------------#
@@ -88,22 +88,25 @@ def weight_matrix(class1, class2, fig, perceptron_usps, ax=plt):
     # Apprentissage des données usps
     perceptron_usps.fit(datax, datay)
     print("======Entre les classes {} et {}======\n".format(class1, class2))
-    err_learning = perceptron_usps.score(datax, datay)
-    err_test = perceptron_usps.score(dataTx,dataTy)
+    err_learning = 0
+    err_test = 0
 
     ax.set_title("{} vs {}".format(class1, class2))
 
     try:
         matrix = ax.imshow(perceptron_usps.w.reshape((16,16)),
                            interpolation="nearest",cmap="YlGnBu")
-
+        err_learning = perceptron_usps.score(datax, datay)
+        err_test = perceptron_usps.score(dataTx,dataTy)
         print("Erreur : train %f, test %f\n"% (err_learning,
                                                err_test))
     except AttributeError:
+        err_learning = 1 - perceptron_usps.score(datax, datay)
+        err_test = 1 - perceptron_usps.score(dataTx,dataTy)
         matrix = ax.imshow(perceptron_usps.coef_.reshape((16,16)),
                            interpolation="nearest",cmap="YlGnBu")
-        print("Erreur : train %f, test %f\n"% (1-err_learning,
-                                               1-err_test))
+        print("Erreur : train %f, test %f\n"% (err_learning,
+                                               err_test))
 
     fig.colorbar(matrix, ax=ax)
 
@@ -144,7 +147,6 @@ def error_curves(class1):
     """
 
     # Définitions des itérations
-    x_iter = [1, 100, 200]
 
     # Now, let's plot
     cols, marks = ["red", "green", "blue", "orange", "black", "cyan", "yellow",
@@ -164,23 +166,26 @@ def error_curves(class1):
         datax, datay = extract_usps("USPS_train.txt", class1, i)
         dataTx, dataTy = extract_usps("USPS_test.txt", class1, i)
 
+        x_iter = range(1, 40)
         # Calcul des erreurs en learning et en test pour les diff iterations
         err_learning, err_test = [], []
         for iter in x_iter:
-            perceptron_usps = Perceptron(loss=hinge,loss_g=hinge_g,max_iter=iter,
-                                         eps=0.1,kernel=None)
-            perceptron_usps.fit(datax, datay, gradient_descent="batch")
-            err_learning.append(perceptron_usps.score(datax, datay))
-            err_test.append(perceptron_usps.score(dataTx, dataTy))
+            # clf = Perceptron(loss=hinge,loss_g=hinge_g,max_iter=iter,
+            #                              eps=0.1,kernel=None)
+            clf = Perceptron(max_iter=iter, n_jobs=-1)
+                                         
+            clf.fit(datax, datay)
+            err_learning.append(1 - clf.score(datax, datay))
+            err_test.append(1 - clf.score(dataTx, dataTy))
 
         ax1.plot(x_iter, err_learning, c=cols[i], marker=marks[i],
                  label='{} vs {}'.format(class1, i))
         ax2.plot(x_iter, err_test, c=cols[i], marker=marks[i],
                  label='{} vs {}'.format(class1, i))
 
-    ax1.legend(loc='lower left', bbox_to_anchor=(1.04, 0),
+    ax1.legend(loc='upper right', 
                ncol=1, fancybox=True, shadow=True)
-    ax2.legend(loc='lower left', bbox_to_anchor=(1.04, 0),
+    ax2.legend(loc='upper right',
                ncol=1, fancybox=True, shadow=True)
-    fig.tight_layout(rect=[0, 0.03, 1, 0.93])
+    fig.tight_layout(rect=[0, 0.03, 1, 0.85])
     plt.savefig("error_curves_{}vsAll".format(class1))
