@@ -5,27 +5,28 @@ import matplotlib.pyplot as plt
 from perceptron import *
 from sklearn.linear_model import Perceptron
 
-################################################################################
+##########################################################################
 #-------------------------------- Données USPS --------------------------------#
-################################################################################
+##########################################################################
+
 
 def load_usps(fn):
     """ Lire un fichier USPS """
 
-    with open(fn,"r") as f:
+    with open(fn, "r") as f:
         f.readline()
-        data = [[float(x) for x in l.split()] for l in f if len(l.split())>2]
-    tmp=np.array(data)
+        data = [[float(x) for x in l.split()] for l in f if len(l.split()) > 2]
+    tmp = np.array(data)
 
     # Retourne la seconde colonne jusqu'à la dernière tmp[:,1:], ainsi que
     # la première colonne tmp[:,0]
-    return tmp[:,1:],tmp[:,0].astype(int)
+    return tmp[:, 1:], tmp[:, 0].astype(int)
 
 
 def show_usps(data):
     """ Fonction nous permettant de visualiser les doonées USPS """
 
-    plt.imshow(data.reshape((16,16)),interpolation="nearest",cmap="YlGnBu")
+    plt.imshow(data.reshape((16, 16)), interpolation="nearest", cmap="YlGnBu")
     plt.colorbar()
     plt.show()
 
@@ -40,7 +41,11 @@ def extract_usps(fichier, firstclass, secondclass):
     """
 
     pixels, numbers = load_usps(fichier)
-    indexes69 = np.hstack(np.where(numbers == i)[0] for i in (firstclass, secondclass))
+    indexes69 = np.hstack(
+        np.where(
+            numbers == i)[0] for i in (
+            firstclass,
+            secondclass))
     pixels69 = pixels[indexes69]
     numbers69 = numbers[indexes69]
     pixels69y = np.ones(pixels69.shape[0])
@@ -62,14 +67,15 @@ def test_clf_on_usps(clf, class1):
     """
 
     for class2 in range(10):
-        if class2 == 6: continue
+        if class2 == 6:
+            continue
         datax, datay = extract_usps("USPS_train.txt", class1, class2)
         dataTx, dataTy = extract_usps("USPS_test.txt", class1, class2)
 
         clf.fit(datax, datay)
 
-        print("Erreur : train %f, test %f\n"% (1 - clf.score(datax, datay),
-                                           1 - clf.score(dataTx, dataTy)))
+        print("Erreur : train %f, test %f\n" % (1 - clf.score(datax, datay),
+                                                1 - clf.score(dataTx, dataTy)))
 
 
 def weight_matrix(class1, class2, fig, perceptron_usps, ax=plt):
@@ -94,19 +100,19 @@ def weight_matrix(class1, class2, fig, perceptron_usps, ax=plt):
     ax.set_title("{} vs {}".format(class1, class2))
 
     try:
-        matrix = ax.imshow(perceptron_usps.w.reshape((16,16)),
-                           interpolation="nearest",cmap="YlGnBu")
+        matrix = ax.imshow(perceptron_usps.w.reshape((16, 16)),
+                           interpolation="nearest", cmap="YlGnBu")
         err_learning = perceptron_usps.score(datax, datay)
-        err_test = perceptron_usps.score(dataTx,dataTy)
-        print("Erreur : train %f, test %f\n"% (err_learning,
-                                               err_test))
+        err_test = perceptron_usps.score(dataTx, dataTy)
+        print("Erreur : train %f, test %f\n" % (err_learning,
+                                                err_test))
     except AttributeError:
         err_learning = 1 - perceptron_usps.score(datax, datay)
-        err_test = 1 - perceptron_usps.score(dataTx,dataTy)
-        matrix = ax.imshow(perceptron_usps.coef_.reshape((16,16)),
-                           interpolation="nearest",cmap="YlGnBu")
-        print("Erreur : train %f, test %f\n"% (err_learning,
-                                               err_test))
+        err_test = 1 - perceptron_usps.score(dataTx, dataTy)
+        matrix = ax.imshow(perceptron_usps.coef_.reshape((16, 16)),
+                           interpolation="nearest", cmap="YlGnBu")
+        print("Erreur : train %f, test %f\n" % (err_learning,
+                                                err_test))
 
     fig.colorbar(matrix, ax=ax)
 
@@ -131,7 +137,8 @@ def matrix_one_vs_all(class1, perceptron_usps):
     class2 = 0
     for i in range(nrows):
         for j in range(ncols):
-            if class2 == class1: class2 += 1
+            if class2 == class1:
+                class2 += 1
             weight_matrix(6, class2, fig, perceptron_usps, ax=ax[i, j])
             class2 += 1
 
@@ -150,18 +157,19 @@ def error_curves(class1):
 
     # Now, let's plot
     cols, marks = ["red", "green", "blue", "orange", "black", "cyan", "yellow",
-                   "magenta", "green"],[".","+","*","o","x","^", ',', 'v', '^']
+                   "magenta", "green"], [".", "+", "*", "o", "x", "^", ',', 'v', '^']
 
-    fig , (ax1, ax2) = plt.subplots(ncols=2, sharex=True)
-    plt.suptitle("Courbes d’erreurs en apprentissage et en test en\n fonction du "
-                 "nombre d'itérations")
-
+    fig, (ax1, ax2) = plt.subplots(ncols=2, sharex=True)
+    plt.suptitle(
+        "Courbes d’erreurs en apprentissage et en test en\n fonction du "
+        "nombre d'itérations")
 
     ax1.set_title("Apprentissage")
     ax2.set_title("Test")
 
     for i in range(9):
-        if i == class1: continue
+        if i == class1:
+            continue
         # Extraction des données usps des classes passées
         datax, datay = extract_usps("USPS_train.txt", class1, i)
         dataTx, dataTy = extract_usps("USPS_test.txt", class1, i)
@@ -173,7 +181,7 @@ def error_curves(class1):
             # clf = Perceptron(loss=hinge,loss_g=hinge_g,max_iter=iter,
             #                              eps=0.1,kernel=None)
             clf = Perceptron(max_iter=iter, n_jobs=-1)
-                                         
+
             clf.fit(datax, datay)
             err_learning.append(1 - clf.score(datax, datay))
             err_test.append(1 - clf.score(dataTx, dataTy))
@@ -183,7 +191,7 @@ def error_curves(class1):
         ax2.plot(x_iter, err_test, c=cols[i], marker=marks[i],
                  label='{} vs {}'.format(class1, i))
 
-    ax1.legend(loc='upper right', 
+    ax1.legend(loc='upper right',
                ncol=1, fancybox=True, shadow=True)
     ax2.legend(loc='upper right',
                ncol=1, fancybox=True, shadow=True)

@@ -2,6 +2,7 @@
 import sys
 sys.path.insert(0, '../TME4-5')
 
+import numpy as np
 import matplotlib.pyplot as plt
 from sklearn import model_selection, multiclass, svm
 from sklearn.linear_model import Perceptron
@@ -319,7 +320,7 @@ def main():
 
     # ------------------------------- Multi Class
 
-    multiClass(trainx, trainy, testx, testy)
+    print(np.unique(testuy))
     multiClass(trainux, trainuy, testux, testuy)
 
     # ------------------------------- String Kernel
