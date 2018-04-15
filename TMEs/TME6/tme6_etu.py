@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn import model_selection, multiclass, svm
 from sklearn.linear_model import Perceptron
-from itertools import combinations
+from collections import Counter
 
 from arftools import make_grid, gen_arti
 from usps import weight_matrix, error_curves, matrix_one_vs_all, load_usps
@@ -212,65 +212,13 @@ def multiClass(trainx, trainy, testx, testy):
 # --------------------------------- String Kernel ---------------------- #
 ##########################################################################
 
-def sous_sequences(s):
-    """FIXME! briefly describe function
 
-    :param s:
-    :returns:
-    :rtype:
-
-    """
-
-    s = [i for i in range(1, len(s) + 1)]
-    return [list(combinations(s, i) for i in range(1, len(s) + 1))]
-
-
-def l(i):
-    """ Longueur d'une sous-sequence
-
-    :param i:
-
-    """
-    return i[-1] - i[0] + 1
-
-
-def proj(s, lmda=1):
-    """ Projection pour une sous-séquence
-
-    :param s:
-    :param lmda:
-
-    """
-
-    if lmda > 1:
-        raise ValueError
-
-    list_sous_sequences, s_lamda = sous_sequences(s), 0
-    for i in list_sous_sequences:
-        s_lamda += lmda**l(i)
-
-    return s_lamda
-
-
-def kernel_string(sigma_n, s, t, lmda=1):
-    """ Kernel string
-
-    :param sigma_n:
-    :param s:
-    :param t:
-    :param lmda:
-
-    """
-
-    sous_seqi = sous_sequences(s)
-    sous_seqj = sous_sequences(t)
-
-    rep = 0
-    for i in range(len(sous_seqi)):
-        for j in range(sous_seqj):
-            rep += lmda**l(i) + lmda**l(j)
-
-    return rep
+def string_kernel(s1, s2):
+    w1, w2 = s1.split(), s2.split()
+    c1, c2 = Counter(w1), Counter(w2)
+    num = sum([c1[k] * c2[k] for k in set(w1).intersection(w2)])
+    den = (len(w1) + len(w2))
+    return num / den
 
 
 ##########################################################################
@@ -303,7 +251,7 @@ def main():
                 probability=False, max_iter=-1, ax=ax_svm[dtype][j])
 
     fig_svm.tight_layout()
-    plt.savefig("svm_data_kernel_rapport.png")
+    # plt.savefig("svm_data_kernel_rapport.png")
     plt.show()
 
     # ------------------------------- Grid Search

@@ -3,10 +3,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from perceptron import *
-from sklearn.linear_model import Perceptron
+from sklearn import linear_model
+
 
 ##########################################################################
-#-------------------------------- Données USPS --------------------------------#
+# -------------------------------- Données USPS ------------------------ #
 ##########################################################################
 
 
@@ -143,10 +144,11 @@ def matrix_one_vs_all(class1, perceptron_usps):
             class2 += 1
 
     fig.tight_layout(rect=[0, 0.03, 1, 0.93])
-    plt.savefig("weight_matrix_{}vsAll".format(class1))
+    # plt.savefig("weight_matrix_{}vsAll".format(class1))
+    plt.show()
 
 
-def error_curves(class1):
+def error_curves(class1, whichclf="implemented_perceptron"):
     """ Plots the errors curves based on the number of iterations, in this case
         till 10000 iterations and class1 vs All.
         :return: 2 courbes d'erreurs, l'une sur l'apprentissage et l'autre sur
@@ -177,14 +179,20 @@ def error_curves(class1):
         x_iter = range(1, 40)
         # Calcul des erreurs en learning et en test pour les diff iterations
         err_learning, err_test = [], []
+        clf = None
         for iter in x_iter:
-            # clf = Perceptron(loss=hinge,loss_g=hinge_g,max_iter=iter,
-            #                              eps=0.1,kernel=None)
-            clf = Perceptron(max_iter=iter, n_jobs=-1)
+            if whichclf == "implemented_perceptron":
+                clf = Perceptron(loss=hinge, loss_g=hinge_g, max_iter=iter,
+                                 eps=0.1, kernel=None)
+                clf.fit(datax, datay)
+                err_learning.append(clf.score(datax, datay))
+                err_test.append(clf.score(dataTx, dataTy))
 
-            clf.fit(datax, datay)
-            err_learning.append(1 - clf.score(datax, datay))
-            err_test.append(1 - clf.score(dataTx, dataTy))
+            else:
+                clf = linear_model.Perceptron(max_iter=iter, n_jobs=-1)
+                clf.fit(datax, datay)
+                err_learning.append(1 - clf.score(datax, datay))
+                err_test.append(1 - clf.score(dataTx, dataTy))
 
         ax1.plot(x_iter, err_learning, c=cols[i], marker=marks[i],
                  label='{} vs {}'.format(class1, i))
@@ -196,4 +204,5 @@ def error_curves(class1):
     ax2.legend(loc='upper right',
                ncol=1, fancybox=True, shadow=True)
     fig.tight_layout(rect=[0, 0.03, 1, 0.85])
-    plt.savefig("error_curves_{}vsAll".format(class1))
+    # plt.savefig("error_curves_{}vsAll".format(class1))
+    plt.show()

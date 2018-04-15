@@ -10,8 +10,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import cm
 from sklearn.naive_bayes import GaussianNB
-
+from mpl_toolkits.mplot3d import Axes3D
 from logisticRegression import cost_f_g, logisticRegression
+from usps import weight_matrix, matrix_one_vs_all, error_curves, test_clf_on_usps
 
 
 def make_grid(data=None, xmin=-5, xmax=5, ymin=-5, ymax=5, step=20):
@@ -230,7 +231,7 @@ def _plot_courbe(title, x_histo, x_histo2, max_iter):
     ax.plot(range(max_iter), logDif, 'b:', label="eps=0.1")
     ax.plot(range(max_iter), logDif2, 'r:', label="eps=0.8")
     plt.legend()
-    plt.savefig(title)
+    # plt.savefig(title)
     plt.show()
 
 
@@ -340,7 +341,7 @@ def main():
     plt.suptitle("Matrice de poids")
     weight_matrix(6, 9, fig, logisticReg, ax1)
     weight_matrix(1, 8, fig, logisticReg, ax2)
-    plt.savefig("weight_matrix_qqlexs_LR")
+    # plt.savefig("weight_matrix_qqlexs_LR")
 
     # Matrice de poids 6 vs All
     matrix_one_vs_all(6, logisticReg)

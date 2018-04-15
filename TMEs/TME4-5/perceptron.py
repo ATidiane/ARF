@@ -3,7 +3,7 @@
 from arftools import *
 from cost_functions import *
 from projections import *
-
+import numpy as np
 
 ##########################################################################
 # --------------------------------- Perceptron ------------------------- #
@@ -11,24 +11,32 @@ from projections import *
 
 
 class Perceptron(object):
-    def __init__(
-            self,
-            loss=mse,
-            loss_g=mse_g,
-            max_iter=1000,
-            eps=0.01,
-            kernel="bias"):
-        """ :loss: fonction de cout
-            :loss_g: gradient de la fonction de cout
-            :max_iter: nombre d'iterations
-            :eps: pas de gradient
+    def __init__(self, loss=mse, loss_g=mse_g, max_iter=1000,
+                 eps=0.01, kernel="bias"):
+        """ Initialisation des paramètres du perceptron
+
+        :param loss: fonction de coût
+        :param loss_g: gradient de la fonction coût
+        :param max_iter: nombre maximum d'itération de la fonction coût
+        :param eps: pas du gradient
+        :param kernel: kernel utilisé
+
         """
+
         self.max_iter, self.eps = max_iter, eps
         self.loss, self.loss_g = loss, loss_g
         self.kernel = kernel
 
     def projection_decorator_fit(fonc):
         def adjust_datax(self, datax, *args, **kwargs):
+            """ Decorator for fit
+
+            :param datax: contient tous les exemples du dataset
+            :returns: transformed dataset
+            :rtype: numpy array
+
+            """
+
             self.trainx = datax
             if self.kernel == "bias":
                 datax = allow_bias(datax)
@@ -36,7 +44,7 @@ class Perceptron(object):
                 datax = kernel_poly(datax)
             elif self.kernel == "gaussian":
                 #datax = kernel_gaussian(datax, datax, 1.5)
-                datax = kernel_gauss(datax, datax, 100)
+                datax = kernel_gauss(datax, datax, 1.5)
 
             return fonc(self, datax, *args, **kwargs)
 
@@ -44,25 +52,45 @@ class Perceptron(object):
 
     def projection_decorator_predict(fonc):
         def adjust_datax(self, datax, *args, **kwargs):
+            """ Decorator for predict
+
+            :param datax: contient tous les exemples du dataset
+            :returns: transformed dataset
+            :rtype: numpy array
+
+            """
+
             if self.kernel == "bias":
                 datax = allow_bias(datax)
             elif self.kernel == "polynomial":
                 datax = kernel_poly(datax)
             elif self.kernel == "gaussian":
-                datax = kernel_gauss(datax, self.trainx, 100)
+                datax = kernel_gauss(datax, self.trainx, 1.5)
 
             return fonc(self, datax, *args, **kwargs)
 
         return adjust_datax
 
     def batch_fit(self, datax, datay):
-        """ Classic gradient descent Learning """
+        """ Classic gradient descent Learning
+
+        :param datax: contient tous les exemples du dataset
+        :param datay: labels du dataset
+
+        """
+
         print("=================Batch=================\n")
         for i in range(self.max_iter):
             self.w = self.w - (self.eps * self.loss_g(datax, datay, self.w))
 
     def stochastic_fit(self, datax, datay):
-        """ Stochastic gradient descent Learning """
+        """ Stochastic gradient descent Learning
+
+        :param datax: contient tous les exemples du dataset
+        :param datay: labels du dataset
+
+        """
+
         print("===============Stochastic==============\n")
         self.loss_g = stochastic_g
         data = np.hstack((datax, datay))
@@ -78,7 +106,13 @@ class Perceptron(object):
                 self.w -= (self.eps * self.loss_g(vectorx, vectory, self.w))
 
     def stochastic_fit_animation(self, datax, datay):
-        """ Stochastic gradient descent Learning """
+        """ Stochastic gradient descent Learning
+
+        :param datax: contient tous les exemples du dataset
+        :param datay: labels du dataset
+
+        """
+
         print("===============Stochastic==============\n")
         self.loss_g = stochastic_g
         data = np.hstack((datax, datay))
@@ -103,7 +137,14 @@ class Perceptron(object):
                 plt.close()
 
     def minibatch_fit(self, datax, datay, batch_size=10):
-        """ Mini-Batch gradient descent Learning """
+        """ Mini-Batch gradient descent Learning
+
+        :param datax: contient tous les exemples du dataset
+        :param datay: labels du dataset
+        :param batch_size: nb d'exemples sur lesquels itérés en un.
+
+        """
+
         print("===============Mini-Batch==============\n")
         for _ in range(self.max_iter):
             for i in range(0, datax.shape[0], batch_size):
@@ -114,20 +155,19 @@ class Perceptron(object):
                 self.w -= (self.eps * self.loss_g(batchx, batchy, self.w))
 
     @projection_decorator_fit
-    def fit(
-            self,
-            datax,
-            datay,
-            testx=None,
-            testy=None,
-            gradient_descent="batch",
-            batch_size=10):
-        """ :datax: donnees de train
-            :datay: label de train
-            :testx: donnees de test
-            :testy: label de test
-            :method: can be either, batch_fit, stochastic_fit or mini_batch_fit.
+    def fit(self, datax, datay, testx=None, testy=None,
+            gradient_descent="batch", batch_size=10):
+        """ Apprentissage
+
+        :param datax: contient tous les exemples du dataset
+        :param datay: labels du dataset
+        :param testx: contient les exemples de la base de test
+        :param testy: contient les labels de la base de test
+        :param gradient_descent: type de descente de gradient utilisé
+        :param batch_size: nb d'exemples sur lesquels itérés en un.
+
         """
+
         self.datax = datax
         N = len(datay)
         datay = datay.reshape(-1, 1)
@@ -151,10 +191,26 @@ class Perceptron(object):
 
     @projection_decorator_predict
     def predict(self, datax):
+        """ Predict labels
+
+        :param datax: contient tous les exemples du dataset
+        :returns: predicted labels
+        :rtype: numpy array
+
+        """
         if len(datax.shape) == 1:
             datax = datax.reshape(-1, 1)
 
         return np.sign(datax.dot(self.w.T))
 
     def score(self, datax, datay):
+        """ Evaluate de classification
+
+        :param datax: contient les exemples du dataset
+        :param datay: labels du dataset
+        :returns: score des erreurs
+        :rtype: float
+
+        """
+
         return (1 - np.mean((self.predict(datax) == datay[:, np.newaxis])))

@@ -12,6 +12,9 @@ from sklearn.metrics.pairwise import rbf_kernel
 def allow_bias(datax):
     """ Ajoute une colonne de remplie de 1 à datax et retourne la nouvelle
         matrice correspondante.
+
+    :param datax: contient tous les exemples du dataset
+
     """
 
     adjust = np.ones(datax.shape[0]).reshape(-1, 1)
@@ -19,7 +22,11 @@ def allow_bias(datax):
 
 
 def kernel_poly(datax):
-    """ Projette les données dans un espace polynomial, 6 dimensions """
+    """ Projette les données dans un espace polynomial, 6 dimensions
+
+    :param datax: contient tous les exemples du dataset
+
+    """
 
     x1carre = (datax[:, 0] * datax[:, 0]).reshape(-1, 1)
     x2carre = (datax[:, 1] * datax[:, 1]).reshape(-1, 1)
@@ -29,7 +36,13 @@ def kernel_poly(datax):
 
 
 def kernel_gaussian(datax, trainx, sigma=1):
-    """ Projection gaussienne de toutes les données """
+    """ Projection gaussienne de toutes les données
+
+    :param datax: contient tous les exemples du dataset
+    :param trainx: données d'apprentissage
+    :param sigma:
+
+    """
 
     rowd, col = datax.shape
     rowt, col = trainx.shape
@@ -45,11 +58,11 @@ def kernel_gaussian(datax, trainx, sigma=1):
 def kernel_gauss(datax, datay=None, gamma=None):
     """ Calculate gaussian kernel using sklearn
 
-    :param datax:
-    :param datay:
+    :param datax: contient tous les exemples du dataset
+    :param datay: labels du dataset
     :param gamma:
-    :returns:
-    :rtype:
+    :returns: datax
+    :rtype: numpy array
 
     """
 
@@ -58,4 +71,5 @@ def kernel_gauss(datax, datay=None, gamma=None):
 
 def gaussian(x, z, sigma):
     """ Calcule la projection gaussienne pour 2 arrays """
+
     return np.exp(-np.linalg.norm(x - z, 2)**2 / (2. * sigma**2))
