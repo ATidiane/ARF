@@ -7,6 +7,7 @@ import pickle as pkl
 import pydot
 from math import *
 from decisiontree import *
+from sklearn.model_selection import cross_val_score
 # data : tableau (films,features), id2titles : dictionnaire id -> titre
 # film, fields : id
 
@@ -18,8 +19,8 @@ with open('imdb_extrait.pkl', 'rb') as f:
 datax = data[:, :32]
 datay = np.array([1 if x[33] > 6.5 else -1 for x in data])
 
-print(fields, len(datay))
-print(data[:, :33])
+#print(fields, len(datay))
+#print(data[:, :33])
 
 
 def attributes():
@@ -61,7 +62,7 @@ def partitionnement(datax, app):
     nb_ex_app = int(len(datax) * app)
 
     inds_app = indices[:nb_ex_app]
-    inds_test = indices[:nb_ex_app]
+    inds_test = indices[nb_ex_app:]
 
     data_app, datay_app = datax[inds_app], datay[inds_app]
     data_test, datay_test = datax[inds_test], datay[inds_test]
@@ -103,33 +104,74 @@ def plot_error_curves(datax):
                  "en fonction de la profondeur de l'arbre")
     plt.show()
 
+
+def cross_validation(dt, datax, datay, k=5):
+    """ A revoir """
+    part = int(len(datax)/k)
+    iterate = np.arange(0, len(datax), part)
+    print(iterate)
+    ens_x = [datax[iterate[i]:iterate[i+1]] for i in iterate if i+1 < len(iterate)]
+    ens_y = [datay[iterate[i]:iterate[i+1]] for i in iterate if i+1 < len(iterate)]
+
+    print(ens_x)
+    dt = DecisionTree()
+    score_train = []
+    score_test = []
+    for i, (dx, dy)  in enumerate(zip(ens_x, ens_y)):
+        datax_test = dx
+        datay_test = dy
+        datax_app = np.hstack((ens_x[i:]))
+        datay_app = np.hstack((ens_y[i:]))
+        print(len(datax_app))
+        print(len(datay_app))
+        dt.fit(datax_app, datay_app)
+        score_train.append(dt.score(datax_app, datay_app))
+        score_test.append(dt.score(datax_test, datay_test))
+        
+    plt.plot(range(k), score_train, color='orange', label="train")
+    plt.plot(range(k), score_test, color='cyan', label="test")
+    plt.xlabel("profondeur")
+    plt.ylabel("scores")
+    plt.title("Score de cross-validation en fonction de la profondeur et du nombre de partitions de la base initiale")
+
+    plt.show()
+
+    
+    
 ###############################################################################
 #----------------------------------Main---------------------------------------#
 ###############################################################################
 
 
-affichage()
+def main():
+    
+    affichage()
 
-dt = DecisionTree()
-dt.max_depth = 1                        # Taille de l'arbre
-dt.min_samples_split = 2
+    dt = DecisionTree()
+    dt.max_depth = 2
+    dt.min_samples_split = 2
 
-# Apprentissage
-dt.fit(datax, datay)
+    # Apprentissage
+    dt.fit(datax, datay)
 
-# Prédiction
-dt.predict(datax[:100, :])
+    # Prédiction
+    dt.predict(datax[:100, :])
 
+    # Score
+    print("\nscore:", dt.score(datax, datay), "\n")
 
-print("\nscore:", dt.score(datax, datay), "\n")
+    # Pour dessiner l'arbre dans un fichier pdf
+    #dt.to_pdf("test_tree2{}self.pdf".format(dt.max_depth), fields)
+    print(str(dt))
+    # print(_)
 
-# Pour dessiner l'arbre dans un fichier pdf
+    # Partionnement, Sur et sous apprentissage
+    # plot_error_curves(datax)
 
-#dt.to_pdf("test_tree2{}.pdf".format(dt.max_depth), fields)
-print(str(dt))
-# print(_)
+    # Cross_validation
+    # cross_validation(dt, datax, datay, k=10)
 
+    
 
-# Partionnement, Sur et sous apprentissage
-
-plot_error_curves(datax)
+if __name__=="__main__":
+    main()
