@@ -2,14 +2,14 @@
 import sys
 sys.path.insert(0, '../TME4-5')
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from sklearn import model_selection, multiclass, svm
 from sklearn.linear_model import Perceptron
 from collections import Counter
 
-from arftools import make_grid, gen_arti
-from usps import weight_matrix, error_curves, matrix_one_vs_all, load_usps
+from arftools import gen_arti, make_grid
+from usps import error_curves, load_usps, matrix_one_vs_all, weight_matrix
 
 
 def plotAll_in_subplots(testx, testy, f, ax=plt):
