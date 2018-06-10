@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+"""
+This file contains all the fonctions for plotting images.
+"""
+
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import offsetbox
@@ -79,10 +83,15 @@ def plot_dico_patches(dico, title="", ncols=5):
     if len(dico) == 0:
         raise Exception("Empty dictionnary problem !")
 
+    if isinstance(dico, dict):
+        imgs = list(dico.values())
+    else:
+        imgs = dico.tolist()
+
+    index = 0
     nrows = int(len(dico) / ncols)
     fig, ax = plt.subplots(nrows=nrows, ncols=ncols, sharex=True)
 
-    imgs, index = list(dico.values()), 0
     for i in range(nrows):
         for j in range(ncols):
             ax[i, j].axis('off')

@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+"""
+In this file, we have all the necessaries fonctions to preprocess an image.
+"""
+
 import random
 
 import matplotlib.pyplot as plt
@@ -141,13 +145,13 @@ def image_patches(im, step=100):
 
     s = int(step / 2)
     nb_lines, nb_cols, nb_canaux = im.shape
-    live_pixels, missing_pixels = dict(), dict()
+    live_pixels, missing_pixels = [], dict()
     for i in range(s, nb_lines, step):
         for j in range(s, nb_cols, step):
             patch = get_patch(i, j, step, im)
             if -100 in patch:
                 missing_pixels[i, j] = patch
             else:
-                live_pixels[i, j] = patch
+                live_pixels.append(patch.tolist())
 
-    return live_pixels, missing_pixels
+    return np.asarray(live_pixels), missing_pixels
