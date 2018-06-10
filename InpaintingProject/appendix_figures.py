@@ -68,7 +68,7 @@ def plot_components(data, model, images=None, ax=None,
             ax.add_artist(imagebox)
 
 
-def plot_dico_patches(dico, ncols=5):
+def plot_dico_patches(dico, title="", ncols=5):
     """ PLot all patches of the given dictionnary
 
     :param dico: The given dictionnary
@@ -90,3 +90,4 @@ def plot_dico_patches(dico, ncols=5):
             index += 1
 
     fig.subplots_adjust(hspace=0, wspace=0)
+    fig.suptitle(title)
