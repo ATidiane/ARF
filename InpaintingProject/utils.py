@@ -124,6 +124,40 @@ def noise(im, prc):
     return im_noise
 
 
+def noise_by_cubes(im, prc, nbcube):
+    """ Noise prc percent of the given image
+
+    :param im: a tensor
+    :param prc: the percentage of pixels to noise
+    :param nbcube: noise nbcube rectangles in the image randomly
+    :returns: a tensor
+    :rtype: numpy.ndarray
+
+    """
+
+    im_noise = im.copy()
+    nb_lines, nb_cols = im_noise.shape[0], im_noise.shape[1]
+    nb_noise_pixels = int(nb_lines * nb_cols * prc / 100)
+    noise_size = int(np.ceil(np.sqrt(nb_noise_pixels / nbcube)))
+
+    while nb_noise_pixels > 0:
+        x, y = random.randint(
+            0, nb_lines - 1), random.randint(0, nb_cols - 1)
+        xend = im_noise.shape[0] if x + \
+            noise_size > im_noise.shape[0] else x + noise_size
+        yend = im_noise.shape[1] if y + \
+            noise_size > im_noise.shape[1] else y + noise_size
+        if -100 not in im_noise[x:xend, y:yend]:
+            im_noise[x:xend, y:yend] = -100
+            if (xend - x) * (yend - y) > 0:
+                nb_noise_pixels -= (xend - x) * (yend - y)
+            else:
+                nb_noise_pixels = 0
+        else:
+            continue
+    return im_noise
+
+
 def delete_rect(im, i, j, h, w):
     """ Return the image with the part of given coordonates deleted
 
@@ -143,7 +177,7 @@ def delete_rect(im, i, j, h, w):
     return img
 
 
-def image_patches(im, step=100):
+def image_patches(im, step=100, bruit=-100):
     """ Returns two dictionaries, one containing patches of the image with no
         missing pixels and the other with only patches with missing pixels
 
@@ -160,7 +194,7 @@ def image_patches(im, step=100):
     for i in range(s, nb_lines, step):
         for j in range(s, nb_cols, step):
             patch = get_patch(i, j, step, im)
-            if -100 in patch:
+            if bruit in patch:
                 missing_pixels[i, j] = patch
             else:
                 live_pixels.append(patch.tolist())
