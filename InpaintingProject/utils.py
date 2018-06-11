@@ -86,6 +86,17 @@ def get_patch(i, j, h, im):
     return im[k:l, m:n]
 
 
+def get_indexes(i, j, h, im):
+    """ Return indexes """
+
+    k = 0 if int(i - (h / 2)) < 0 else int(i - (h / 2))
+    l = im.shape[0] if int(i + (h / 2)) > im.shape[0] else int(i + (h / 2))
+    m = 0 if int(j - (h / 2)) < 0 else int(j - (h / 2))
+    n = im.shape[1] if int(j + (h / 2)) > im.shape[1] else int(j + (h / 2))
+
+    return k, l, m, n
+
+
 def noise(im, prc):
     """ Noise prc percent of the given image
 
@@ -127,8 +138,8 @@ def delete_rect(im, i, j, h, w):
     """
 
     img = im.copy()
-    img[int(i - (h / 2)): int(i + (h / 2)),
-        int(j - (w / 2)): int(j + (w / 2))] = -100
+    img[int(i - (h / 2)): int(i + h / 2),
+        int(j - (w / 2)): int(j + w / 2)] = np.ones((h, w, 3)) * -100
     return img
 
 
